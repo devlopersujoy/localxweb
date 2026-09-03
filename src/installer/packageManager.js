@@ -37,6 +37,12 @@ const PACKAGE_SOURCES = {
     }
   },
   linux: {
+    pkg: {
+      apache: 'apache2',
+      mysql: 'mariadb',
+      php: 'php php-apache',
+      phpmyadmin: 'phpmyadmin'
+    },
     apt: {
       apache: 'apache2',
       mysql: 'mariadb-server mariadb-client',
@@ -211,8 +217,11 @@ class PackageManager {
       const pkg = PACKAGE_SOURCES.linux[pkgManager]?.[name];
       if (pkg) {
         let cmd = '';
-        const sudo = process.getuid && process.getuid() === 0 ? '' : 'sudo ';
-        if (pkgManager === 'apt') {
+        const isTermux = platform.isTermux || pkgManager === 'pkg';
+        const sudo = (!isTermux && process.getuid && process.getuid() !== 0) ? 'sudo ' : '';
+        if (pkgManager === 'pkg') {
+          cmd = `pkg install -y ${pkg}`;
+        } else if (pkgManager === 'apt') {
           cmd = `${sudo}apt-get update && ${sudo}apt-get install -y ${pkg}`;
         } else if (pkgManager === 'dnf') {
           cmd = `${sudo}dnf install -y ${pkg}`;
@@ -289,9 +298,13 @@ class PackageManager {
   async installPhpExtensions(missingExts = ['mysqli', 'mbstring', 'curl', 'xml', 'zip', 'gd']) {
     if (platform.isLinux) {
       const pkgManager = platform.getPackageManager();
-      const sudo = (process.getuid && process.getuid() === 0) ? '' : 'sudo ';
+      const isTermux = platform.isTermux || pkgManager === 'pkg';
+      const sudo = (!isTermux && process.getuid && process.getuid() === 0) ? '' : 'sudo ';
       try {
-        if (pkgManager === 'apt') {
+        if (pkgManager === 'pkg') {
+          execSync('pkg install -y php php-apache', { stdio: 'ignore', timeout: 60000 });
+          return true;
+        } else if (pkgManager === 'apt') {
           logger.info(`Auto-installing missing PHP extensions (${missingExts.join(', ')})...`);
           execSync(`${sudo}apt-get update -y && ${sudo}apt-get install -y php-mysql php-mbstring php-curl php-xml php-zip php-gd php-intl php-fileinfo`, {
             stdio: 'ignore',

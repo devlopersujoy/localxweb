@@ -25,11 +25,15 @@ function detectApache() {
     if (fs.existsSync(p)) return p;
   }
 
+  const termuxBin = path.join(process.env.PREFIX || '/data/data/com.termux/files/usr', 'bin');
+
   const commonPaths = [
     'C:\\xampp\\apache\\bin\\httpd.exe',
     'C:\\laragon\\bin\\apache\\httpd-2.4.54-win64-VS16\\bin\\httpd.exe',
     'C:\\Apache24\\bin\\httpd.exe',
     'C:\\Program Files\\Apache Group\\Apache2\\bin\\httpd.exe',
+    path.join(termuxBin, 'httpd'),
+    path.join(termuxBin, 'apachectl'),
     '/usr/sbin/httpd',
     '/usr/sbin/apache2',
     '/usr/bin/apache2',
@@ -37,7 +41,7 @@ function detectApache() {
     '/usr/local/bin/httpd'
   ];
 
-  return findBinary(['httpd', 'apache2'], commonPaths);
+  return findBinary(['httpd', 'apache2', 'apachectl'], commonPaths);
 }
 
 function detectMySQL() {
@@ -50,6 +54,8 @@ function detectMySQL() {
     if (fs.existsSync(p)) return p;
   }
 
+  const termuxBin = path.join(process.env.PREFIX || '/data/data/com.termux/files/usr', 'bin');
+
   const commonPaths = [
     'C:\\xampp\\mysql\\bin\\mysqld.exe',
     'C:\\Program Files\\MariaDB 10.11\\bin\\mysqld.exe',
@@ -57,6 +63,8 @@ function detectMySQL() {
     'C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysqld.exe',
     'C:\\Program Files\\MySQL\\MySQL Server 8.4\\bin\\mysqld.exe',
     'C:\\laragon\\bin\\mysql\\mysql-8.0.30-winx64\\bin\\mysqld.exe',
+    path.join(termuxBin, 'mariadbd'),
+    path.join(termuxBin, 'mysqld'),
     '/usr/sbin/mysqld',
     '/usr/sbin/mariadbd',
     '/usr/local/mysql/bin/mysqld',
@@ -76,10 +84,13 @@ function detectPHP() {
     if (fs.existsSync(p)) return p;
   }
 
+  const termuxBin = path.join(process.env.PREFIX || '/data/data/com.termux/files/usr', 'bin');
+
   const commonPaths = [
     'C:\\xampp\\php\\php.exe',
     'C:\\php\\php.exe',
     'C:\\Program Files\\php-8.5.9\\php.exe',
+    path.join(termuxBin, 'php'),
     '/usr/bin/php',
     '/usr/local/bin/php',
     '/opt/homebrew/bin/php'
@@ -106,9 +117,12 @@ function detectPhpMyAdmin() {
     } catch {}
   }
 
+  const termuxShare = path.join(process.env.PREFIX || '/data/data/com.termux/files/usr', 'share', 'phpmyadmin');
+
   const commonPaths = [
     'C:\\xampp\\phpMyAdmin',
     'C:\\laragon\\etc\\apps\\phpMyAdmin',
+    termuxShare,
     '/usr/share/phpmyadmin',
     '/etc/phpmyadmin',
     '/var/www/html/phpmyadmin',

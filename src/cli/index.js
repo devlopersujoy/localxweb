@@ -453,11 +453,18 @@ program
 // Helper to open files, URLs, or directories in OS default viewer
 async function openTarget(target) {
   try {
+    if (platform.isTermux) {
+      const { exec } = require('child_process');
+      exec(`termux-open-url "${target}" || am start -a android.intent.action.VIEW -d "${target}"`);
+      return;
+    }
     const open = require('open');
     await open(target);
   } catch {
     const { exec } = require('child_process');
-    if (process.platform === 'win32') {
+    if (platform.isTermux) {
+      exec(`termux-open-url "${target}" || am start -a android.intent.action.VIEW -d "${target}"`);
+    } else if (process.platform === 'win32') {
       exec(`start "" "${target}"`);
     } else if (process.platform === 'darwin') {
       exec(`open "${target}"`);

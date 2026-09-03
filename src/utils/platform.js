@@ -9,7 +9,9 @@ let lastCpuMeasure = null;
 const platform = {
   isWindows: process.platform === 'win32',
   isMac: process.platform === 'darwin',
-  isLinux: process.platform === 'linux',
+  isLinux: process.platform === 'linux' || process.platform === 'android',
+  isTermux: process.platform === 'android' || !!process.env.TERMUX_VERSION || (!!process.env.PREFIX && process.env.PREFIX.includes('com.termux')),
+  isAndroid: process.platform === 'android',
   arch: process.arch,
   isAppleSilicon: process.platform === 'darwin' && process.arch === 'arm64',
   isWSL: process.platform === 'linux' && (() => {
@@ -85,6 +87,9 @@ const platform = {
   },
 
   getPackageManager() {
+    if (this.isTermux || (this.isLinux && this.hasBinary('pkg'))) {
+      return 'pkg';
+    }
     if (this.isWindows) {
       if (this.hasBinary('winget')) return 'winget';
       if (this.hasBinary('choco')) return 'choco';
@@ -107,6 +112,9 @@ const platform = {
   },
 
   getLinuxDistro() {
+    if (this.isTermux) {
+      return { id: 'termux', name: 'Termux (Android)' };
+    }
     if (!this.isLinux) return null;
     try {
       if (fs.existsSync('/etc/os-release')) {
@@ -127,7 +135,11 @@ const platform = {
     let release = os.release();
     let distro = null;
 
-    if (this.isWindows) {
+    if (this.isTermux) {
+      type = 'Termux (Android)';
+      release = process.env.TERMUX_VERSION || os.release();
+      distro = { id: 'termux', name: 'Termux' };
+    } else if (this.isWindows) {
       type = 'Windows';
       const rel = os.release();
       if (rel.startsWith('10.0.22') || rel.startsWith('10.0.26')) {
