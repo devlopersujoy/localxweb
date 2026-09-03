@@ -144,6 +144,43 @@ class AutoFixer {
   }
 
   /**
+   * Ping MySQL server to verify if port has an active MySQL/MariaDB daemon
+   */
+  static async pingMySQL(port) {
+    return new Promise((resolve) => {
+      const net = require('net');
+      const socket = new net.Socket();
+      socket.setTimeout(1200);
+
+      socket.once('data', (data) => {
+        const text = data.toString('latin1').toLowerCase();
+        socket.destroy();
+        if (text.includes('mysql') || text.includes('mariadb') || (data.length > 4 && data[4] === 0x0a)) {
+          resolve(true);
+        } else {
+          resolve(false);
+        }
+      });
+
+      socket.once('connect', () => {
+        // Connected, wait briefly for handshake packet
+      });
+
+      socket.once('timeout', () => {
+        socket.destroy();
+        resolve(false);
+      });
+
+      socket.once('error', () => {
+        socket.destroy();
+        resolve(false);
+      });
+
+      socket.connect(port, '127.0.0.1');
+    });
+  }
+
+  /**
    * Run full auto-fix pipeline before stack startup
    */
   static async autoFixPipeline(config) {
@@ -168,6 +205,28 @@ class AutoFixer {
       config.set('apache', curApacheCfg);
     }
 
+    // Resolve MySQL safe port with auto-forwarding
+    const curMysqlCfg = config.get('mysql') || {};
+    let curMysqlPort = parseInt(curMysqlCfg.port, 10);
+    if (!curMysqlPort || curMysqlPort < 1024) curMysqlPort = 3306;
+
+    const mysqlBusy = await checkPort(curMysqlPort);
+    let safeMysqlPort = curMysqlPort;
+    if (mysqlBusy) {
+      const isMySql = await this.pingMySQL(curMysqlPort);
+      if (isMySql) {
+        logger.info(`Active database server detected on port ${curMysqlPort}.`);
+      } else {
+        safeMysqlPort = await this.findAvailablePort(curMysqlPort + 1);
+        logger.warn(`Port ${curMysqlPort} is occupied by another app. Auto-forwarding MySQL to port ${safeMysqlPort}.`);
+        curMysqlCfg.port = safeMysqlPort;
+        config.set('mysql', curMysqlCfg);
+      }
+    } else if (curMysqlCfg.port !== safeMysqlPort) {
+      curMysqlCfg.port = safeMysqlPort;
+      config.set('mysql', curMysqlCfg);
+    }
+
     const curPmaPort = config.get('phpmyadminPort') || 9999;
     const safePmaPort = await this.findAvailablePort(curPmaPort);
     if (safePmaPort !== curPmaPort) {
@@ -178,6 +237,7 @@ class AutoFixer {
     return {
       dashboardPort: safeDashPort,
       webPort: safeWebPort,
+      mysqlPort: safeMysqlPort,
       pmaPort: safePmaPort
     };
   }

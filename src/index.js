@@ -12,7 +12,7 @@ function createServices() {
   const apache = new ApacheService();
   const mysql = new MySQLService();
   const php = new PHPService();
-  const phpmyadmin = new PhpMyAdminService();
+  const phpmyadmin = new PhpMyAdminService(mysql);
   const dbManager = new DatabaseManager(mysql);
 
   return { apache, mysql, php, phpmyadmin, dbManager, sitesManager };

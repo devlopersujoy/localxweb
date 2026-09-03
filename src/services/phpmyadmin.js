@@ -9,10 +9,11 @@ const { waitForPort, checkPort } = require('../utils/ports');
 const { detectPhpMyAdmin } = require('../installer/detector');
 
 class PhpMyAdminService extends BaseService {
-  constructor() {
+  constructor(mysqlService = null) {
     const cfg = config.get('phpmyadminPort') || 9999;
     super('phpmyadmin', { port: typeof cfg === 'number' ? cfg : 9999 });
     this.phpService = new PHPService();
+    this.mysqlService = mysqlService;
   }
 
   detect() {
@@ -91,7 +92,7 @@ class PhpMyAdminService extends BaseService {
 
       // Always ensure valid config is present with blowfish secret and current MySQL port
       const secret = this._randomSecret();
-      const mysqlPort = mysqlCfg.port || 3306;
+      const mysqlPort = (this.mysqlService && this.mysqlService.port) || mysqlCfg.port || 3306;
       const mysqlPass = mysqlCfg.rootPassword || '';
 
       const tmpDir = path.join(platform.localxwebDir, 'tmp').replace(/\\/g, '/');

@@ -223,11 +223,17 @@ ${phpDirectives}
       return true;
     }
 
-    // Check port conflict
+    // Check port conflict with auto-forwarding
     const portBusy = await checkPort(this.port);
     if (portBusy) {
-      logger.error(`Port ${this.port} is already in use by another application.`);
-      return false;
+      const AutoFixer = require('../utils/autoFixer');
+      const safePort = await AutoFixer.findAvailablePort(this.port + 1);
+      logger.warn(`Port ${this.port} is busy. Auto-forwarding Web Server (Apache/PHP) to available port ${safePort}...`);
+      this.port = safePort;
+
+      const curApacheCfg = config.get('apache') || {};
+      curApacheCfg.port = safePort;
+      config.set('apache', curApacheCfg);
     }
 
     const httpdPath = this.getInstallPath();

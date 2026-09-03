@@ -175,11 +175,24 @@ default-character-set = utf8mb4
       return true;
     }
 
-    // Check port conflict
+    // Check port conflict with auto-forwarding
     const portBusy = await checkPort(this.port);
     if (portBusy) {
-      logger.warn(`Port ${this.port} is already active or in use by another database server.`);
-      return true;
+      const AutoFixer = require('../utils/autoFixer');
+      const isMySql = await AutoFixer.pingMySQL(this.port);
+      if (isMySql) {
+        logger.info(`Active database server detected on port ${this.port}. LocalXWeb will connect to it.`);
+        return true;
+      }
+
+      // If port is occupied by another non-database app, auto-forward!
+      const safePort = await AutoFixer.findAvailablePort(this.port + 1);
+      logger.warn(`Port ${this.port} is occupied by another app. Auto-forwarding MySQL to available port ${safePort}...`);
+      this.port = safePort;
+
+      const curMysqlCfg = config.get('mysql') || {};
+      curMysqlCfg.port = safePort;
+      config.set('mysql', curMysqlCfg);
     }
 
     // On Linux/macOS, try starting system service first if present

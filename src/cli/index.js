@@ -48,11 +48,13 @@ program
     startDashboard(port);
 
     const apachePort = apache.port || config.get('apache')?.port || 80;
+    const mysqlPort = mysql.port || config.get('mysql')?.port || 3306;
     const pmaPort = phpmyadmin.port || config.get('phpmyadminPort') || 9999;
 
     console.log(chalk.bold.green('\n  ✔ LocalXWeb Stack is Online!\n'));
     console.log(`  ${chalk.bold('Dashboard:')}   ${chalk.cyan(`http://localhost:${port}`)}`);
     console.log(`  ${chalk.bold('Web Server:')}  ${chalk.cyan(`http://localhost:${apachePort}`)}`);
+    console.log(`  ${chalk.bold('MySQL/MariaDB:')} ${chalk.cyan(`127.0.0.1:${mysqlPort}`)}`);
     console.log(`  ${chalk.bold('phpMyAdmin:')}  ${chalk.cyan(`http://localhost:${pmaPort}`)}`);
     console.log(`  ${chalk.bold('DocumentRoot:')} ${chalk.gray(platform.htdocsDir)}`);
     console.log('');
