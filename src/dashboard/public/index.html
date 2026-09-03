@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LocalXWeb - Universal Local Server Stack</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Full Screen Modern App Layout -->
+  <div class="app-layout">
+    <!-- Mobile Backdrop -->
+    <div id="mobile-backdrop" class="mobile-backdrop" onclick="toggleSidebar(false)"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar" class="sidebar">
+      <!-- Sidebar Brand Header -->
+      <div class="sidebar-brand-card">
+        <div class="brand-logo-wrap">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">LocalXWeb</span>
+          <span id="brand-os" class="brand-sub">Universal Stack</span>
+        </div>
+      </div>
+
+      <!-- Navigation Section -->
+      <nav class="nav-section">
+        <span class="nav-group-label">SERVICES</span>
+        <ul class="nav-list">
+          <li class="nav-item active" data-page="dashboard">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect></svg>
+            <span>Control Center</span>
+            <span class="badge-count" id="nav-badge-services">4</span>
+          </li>
+          <li class="nav-item" data-page="sites">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            <span>Projects & Sites</span>
+            <span class="badge-count" id="nav-badge-sites">0</span>
+          </li>
+          <li class="nav-item" data-page="databases">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+            <span>Databases</span>
+            <span class="badge-count" id="nav-badge-dbs">0</span>
+          </li>
+        </ul>
+
+        <span class="nav-group-label" style="margin-top: 18px;">DIAGNOSTICS & TOOLS</span>
+        <ul class="nav-list">
+          <li class="nav-item" data-page="doctor">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+            <span>System Doctor</span>
+            <span class="badge-count green" id="nav-badge-health">✔</span>
+          </li>
+          <li class="nav-item" data-page="logs">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+            <span>Console Logs</span>
+          </li>
+          <li class="nav-item" data-page="docs">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            <span>Documentation</span>
+            <span class="badge-count" style="background: rgba(99, 102, 241, 0.15); color: var(--accent-primary);">DOCS</span>
+          </li>
+          <li class="nav-item" data-page="settings">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            <span>Preferences</span>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Quick Launchers Dock (Full-Width Stacked Layout) -->
+      <div class="sidebar-quick-dock">
+        <a id="dock-pma-btn" href="http://localhost:9999" target="_blank" class="dock-app-btn" title="Open phpMyAdmin (Port 9999)">
+          <div class="dock-app-left">
+            <span class="dock-app-icon pma">pMA</span>
+            <span class="dock-app-name">phpMyAdmin</span>
+          </div>
+          <span id="dock-pma-port" class="dock-app-arrow font-mono">9999 ↗</span>
+        </a>
+        <a id="dock-apache-btn" href="http://localhost:80" target="_blank" class="dock-app-btn" title="Open Apache Web Server (Port 80)">
+          <div class="dock-app-left">
+            <span class="dock-app-icon apache">HTTP</span>
+            <span class="dock-app-name">Web Root</span>
+          </div>
+          <span id="dock-apache-port" class="dock-app-arrow font-mono">80 ↗</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <div class="workspace">
+      <!-- Clean Top Navbar -->
+      <header class="app-topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu-btn" onclick="toggleSidebar(true)" title="Toggle Sidebar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          </button>
+          <div class="breadcrumb-trail">
+            <span class="breadcrumb-root">LocalXWeb</span>
+            <span class="breadcrumb-slash">/</span>
+            <span id="topbar-view-title" class="breadcrumb-current">Control Center</span>
+          </div>
+        </div>
+
+        <div class="topbar-center">
+          <div class="status-jewel-badge">
+            <span id="stack-pulse-dot" class="status-jewel-dot online"></span>
+            <span id="stack-pulse-text">Stack Online</span>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <!-- CPU Usage Meter -->
+          <div class="header-gauge" title="Real-Time CPU Usage">
+            <span class="gauge-name">CPU</span>
+            <span class="gauge-num font-mono" id="metric-cpu">0%</span>
+            <div class="gauge-meter"><div id="metric-cpu-bar" class="gauge-meter-fill" style="width: 0%"></div></div>
+          </div>
+
+          <!-- RAM Usage Meter -->
+          <div class="header-gauge" title="Real-Time Memory Usage">
+            <span class="gauge-name">RAM</span>
+            <span class="gauge-num font-mono" id="metric-ram">0%</span>
+            <div class="gauge-meter"><div id="metric-ram-bar" class="gauge-meter-fill" style="width: 0%"></div></div>
+          </div>
+
+          <!-- Keyboard Shortcuts Button -->
+          <button id="shortcuts-btn" class="header-icon-btn" onclick="openModal('modal-shortcuts')" title="Keyboard Shortcuts (?)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="6" y1="8" x2="6.01" y2="8"></line><line x1="10" y1="8" x2="10.01" y2="8"></line><line x1="14" y1="8" x2="14.01" y2="8"></line><line x1="18" y1="8" x2="18.01" y2="8"></line><line x1="6" y1="12" x2="6.01" y2="12"></line><line x1="18" y1="12" x2="18.01" y2="12"></line><line x1="7" y1="16" x2="17" y2="16"></line></svg>
+          </button>
+
+          <!-- Theme Toggle -->
+          <button id="theme-toggle-btn" class="header-icon-btn" onclick="toggleTheme()" title="Toggle Dark / Light Theme">
+            <svg id="theme-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Scrollable Main Content -->
+      <main class="content-scroll">
+        <!-- Real-Time Auto-Install Banner -->
+        <div id="install-banner" class="app-banner hidden">
+          <div class="install-banner-header">
+            <div class="install-spinner-group">
+              <span class="app-spinner"></span>
+              <span id="install-status-text">Installing component...</span>
+            </div>
+            <span id="install-percent-text" class="font-mono">0%</span>
+          </div>
+          <div class="progress-track">
+            <div id="install-progress-bar" class="progress-bar" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- 1. DASHBOARD VIEW -->
+        <section id="page-dashboard" class="page-view active">
+          <div class="page-header-bar">
+            <div>
+              <h3>Server Orchestration</h3>
+              <p class="subtitle">Apache 2.4, MariaDB 10.11 LTS, PHP 8.x Engine, phpMyAdmin Web GUI</p>
+            </div>
+            <div class="action-btn-group">
+              <button id="btn-install-all" class="btn btn-warning hidden" onclick="installAllMissing()">Auto-Install</button>
+              <button class="btn btn-success" onclick="startAll()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                Start Stack
+              </button>
+              <button class="btn btn-secondary" onclick="restartAll()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                Restart
+              </button>
+              <button class="btn btn-danger" onclick="stopAll()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2"></rect></svg>
+                Stop Stack
+              </button>
+              <a id="hdr-web-root-btn" href="http://localhost:80" target="_blank" class="btn btn-secondary quick-launch-btn" title="Open Web Server DocumentRoot (Port 80)">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                Web Root ↗
+              </a>
+              <a id="hdr-pma-btn" href="http://localhost:9999" target="_blank" class="btn btn-secondary quick-launch-btn" title="Open phpMyAdmin Web Client (Port 9999)">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                phpMyAdmin ↗
+              </a>
+            </div>
+          </div>
+
+          <!-- Service Cards Grid -->
+          <div class="services-grid" id="services-grid">
+            <!-- Populated by JS -->
+          </div>
+
+          <!-- Stack Specs Cards -->
+          <div class="overview-grid">
+            <div class="card">
+              <div class="card-title">DocumentRoot & Quick Access</div>
+              <div class="spec-list">
+                <div class="spec-row">
+                  <span>Document Root</span>
+                  <code id="info-docroot" class="code-pill">~/.localxweb/htdocs</code>
+                </div>
+                <div class="spec-row">
+                  <span>Web Server</span>
+                  <a id="info-apache-url" href="http://localhost:80" target="_blank" class="btn btn-secondary btn-sm quick-open-btn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                    Open Web Root (80) ↗
+                  </a>
+                </div>
+                <div class="spec-row">
+                  <span>phpMyAdmin Client</span>
+                  <a id="info-pma-url" href="http://localhost:9999" target="_blank" class="btn btn-secondary btn-sm quick-open-btn">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                    Launch phpMyAdmin (9999) ↗
+                  </a>
+                </div>
+                <div class="spec-row">
+                  <span>Database Socket</span>
+                  <span class="font-mono">127.0.0.1:3306 (TCP)</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">System & Host Specs</div>
+              <div class="spec-list">
+                <div class="spec-row">
+                  <span>Host Platform</span>
+                  <strong id="spec-host-os">-</strong>
+                </div>
+                <div class="spec-row">
+                  <span>CPU Architecture</span>
+                  <span id="spec-cpu-cores" class="font-mono">-</span>
+                </div>
+                <div class="spec-row">
+                  <span>Installer Backend</span>
+                  <span id="spec-pkg-mgr" class="badge-soft">-</span>
+                </div>
+                <div class="spec-row">
+                  <span>Server Uptime</span>
+                  <span id="spec-uptime" class="font-mono">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. SITES & PROJECTS VIEW -->
+        <section id="page-sites" class="page-view">
+          <div class="page-header-bar">
+            <div>
+              <h3>Projects & Applications</h3>
+              <p class="subtitle">Scaffold, manage, and test PHP and HTML projects inside your web root</p>
+            </div>
+            <div class="action-btn-group">
+              <input type="text" id="site-search" placeholder="Search projects..." class="form-input search-input" onkeyup="filterSites()">
+              <button class="btn btn-primary" onclick="openCreateProjectModal()">+ New Project</button>
+            </div>
+          </div>
+
+          <div class="sites-grid" id="sites-grid">
+            <!-- Populated by JS -->
+          </div>
+        </section>
+
+        <!-- 3. DATABASES VIEW -->
+        <section id="page-databases" class="page-view">
+          <div class="page-header-bar">
+            <div>
+              <h3>Database Explorer & Credentials</h3>
+              <p class="subtitle">Create databases with passwords, view saved credentials anytime, inspect tables and export SQL</p>
+            </div>
+            <div class="action-btn-group">
+              <button class="btn btn-secondary" onclick="openRootPasswordModal()">Set Root Password</button>
+              <button class="btn btn-primary" onclick="openCreateDbModal()">+ Create Database with Password</button>
+            </div>
+          </div>
+
+          <div class="database-list" id="database-list">
+            <!-- Populated by JS -->
+          </div>
+        </section>
+
+        <!-- 4. SYSTEM DOCTOR VIEW -->
+        <section id="page-doctor" class="page-view">
+          <div class="page-header-bar">
+            <div>
+              <h3>System Diagnostics & Health</h3>
+              <p class="subtitle">Universal health check across operating systems, libraries, and listening ports</p>
+            </div>
+            <div class="action-btn-group">
+              <button class="btn btn-secondary" onclick="runDoctor()">Re-Run Diagnostics</button>
+            </div>
+          </div>
+
+          <div id="doctor-content">
+            <!-- Populated by JS -->
+          </div>
+        </section>
+
+        <!-- 5. CONSOLE LOGS VIEW -->
+        <section id="page-logs" class="page-view">
+          <div class="page-header-bar">
+            <div>
+              <h3>Console & Service Logs</h3>
+              <p class="subtitle">Live service outputs, errors, query logs, and communication traces</p>
+            </div>
+            <div class="action-btn-group">
+              <select id="log-service" class="form-select" onchange="loadLogs()">
+                <option value="apache">Apache HTTPD Log</option>
+                <option value="mysql">MySQL / MariaDB Log</option>
+                <option value="phpmyadmin">phpMyAdmin Log</option>
+              </select>
+              <input type="text" id="log-filter" placeholder="Filter log output..." class="form-input search-input" onkeyup="filterLogContent()">
+              <button class="btn btn-secondary" onclick="loadLogs()">Refresh</button>
+              <button class="btn btn-secondary" onclick="downloadCurrentLog()">Download Log</button>
+              <button class="btn btn-secondary" onclick="clearLogsGui()" title="Clean and truncate log files">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                Clear Logs
+              </button>
+            </div>
+          </div>
+
+          <div class="terminal-card">
+            <div class="terminal-bar">
+              <span id="terminal-title" class="font-mono text-muted">apache.log</span>
+              <label class="checkbox-label">
+                <input type="checkbox" id="autoscroll-chk" checked>
+                <span>Auto-scroll</span>
+              </label>
+            </div>
+            <div class="terminal-body" id="terminal-body">
+              <pre id="log-content">Loading service logs...</pre>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. DOCUMENTATION VIEW -->
+        <section id="page-docs" class="page-view">
+          <div class="page-header-bar">
+            <div>
+              <h3>LocalXWeb Documentation & Guides</h3>
+              <p class="subtitle">Complete reference manual, CLI guides, database connection patterns, and multi-OS installation</p>
+            </div>
+          </div>
+          <!-- Direct Full-Flow Documentation Container (No Sub-buttons) -->
+          <div class="docs-direct-container">
+            
+            <!-- SECTION 1: ARCHITECTURE & STACK -->
+            <div class="card docs-direct-section">
+              <div class="docs-section-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="12 8 8 12 12 16 12 8"></polygon></svg>
+                <h4>1. Architecture & Core Components</h4>
+              </div>
+              <p>LocalXWeb is a complete, modern alternative to XAMPP designed for modern developers. It runs 100% self-contained without interfering with your system's global environment.</p>
+              <div class="docs-grid">
+                <div class="card">
+                  <strong>Apache HTTP Server (2.4.x)</strong>
+                  <p class="subtitle">High-performance HTTP web server pre-wired to execute PHP 8.x with custom DocumentRoot support.</p>
+                </div>
+                <div class="card">
+                  <strong>MariaDB / MySQL (10.11 LTS)</strong>
+                  <p class="subtitle">Enterprise relational database engine with UTF-8 Unicode defaults, InnoDB storage, and password authentication.</p>
+                </div>
+                <div class="card">
+                  <strong>PHP 8.x Engine</strong>
+                  <p class="subtitle">Pre-configured with essential extensions (mysqli, pdo_mysql, curl, mbstring, openssl, gd, zip).</p>
+                </div>
+                <div class="card">
+                  <strong>phpMyAdmin Client</strong>
+                  <p class="subtitle">Browser-based visual database manager running on dedicated port 9999 with auto-synced credentials.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 2: CLI COMMANDS & PROJECT RUNNER -->
+            <div class="card docs-direct-section">
+              <div class="docs-section-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+                <h4>2. CLI Commands & Instant Project Runner</h4>
+              </div>
+              <p>LocalXWeb features a rich terminal interface with built-in development server runner, project scaffolding, and system tools:</p>
+
+              <div class="docs-code-card">
+                <div class="docs-code-header">
+                  <span>Instant Project Server Runner</span>
+                  <button class="btn btn-secondary btn-sm" onclick="copySnippet('code-run')">Copy</button>
+                </div>
+                <pre id="code-run" class="snippet-box"># Run current directory on default port 8080:
+localxweb run
+
+# Run a specific folder on a custom port (e.g. 3000, 8080, 8888):
+localxweb run myapp --port 8888
+
+# Run and automatically launch in default browser:
+localxweb run myapp --port 8080 --browser</pre>
+              </div>
+
+              <div class="docs-code-card">
+                <div class="docs-code-header">
+                  <span>Project Scaffolding & Browser Launchers</span>
+                  <button class="btn btn-secondary btn-sm" onclick="copySnippet('code-proj-cli')">Copy</button>
+                </div>
+                <pre id="code-proj-cli" class="snippet-box"># List all web projects in DocumentRoot:
+localxweb site list
+
+# Scaffold new project (php, laravel, html):
+localxweb site create blog --template php
+
+# Open project in default browser:
+localxweb site open blog
+
+# Quick open LocalXWeb browser apps:
+localxweb open          # Dashboard
+localxweb open pma      # phpMyAdmin (port 9999)
+localxweb open docs     # Documentation</pre>
+              </div>
+
+              <div class="docs-code-card">
+                <div class="docs-code-header">
+                  <span>Database Management from CLI</span>
+                  <button class="btn btn-secondary btn-sm" onclick="copySnippet('code-db')">Copy</button>
+                </div>
+                <pre id="code-db" class="snippet-box"># Create database with dedicated user and password:
+localxweb db create shop_db --user shop_admin --password MySecret123!
+
+# View saved credentials and reveal password in terminal:
+localxweb db creds shop_db
+
+# Set MySQL root password:
+localxweb db root-password NewRootPass123!
+
+# Export database SQL dump:
+localxweb db export shop_db backup.sql</pre>
+              </div>
+
+              <div class="docs-code-card">
+                <div class="docs-code-header">
+                  <span>Diagnostics, File Explorer & Port Scan</span>
+                  <button class="btn btn-secondary btn-sm" onclick="copySnippet('code-diag-cli')">Copy</button>
+                </div>
+                <pre id="code-diag-cli" class="snippet-box"># Scan ports (80, 3306, 9999, 98) for conflicts:
+localxweb ports
+
+# Quick stack component integrity check:
+localxweb check
+
+# Inspect PHP binary, config path, and all 30+ extensions:
+localxweb php-info
+
+# Open DocumentRoot or config in Windows Explorer / OS Finder:
+localxweb explore htdocs
+localxweb explore config</pre>
+              </div>
+
+              <div class="docs-code-card">
+                <div class="docs-code-header">
+                  <span>Cache, Logs & System Maintenance</span>
+                  <button class="btn btn-secondary btn-sm" onclick="copySnippet('code-clean-cli')">Copy</button>
+                </div>
+                <pre id="code-clean-cli" class="snippet-box"># Deep clean everything (cache + logs + temp + pids):
+localxweb clean all
+# or shorthand:
+localxweb clear all
+
+# Clean temporary cache & OPcache only:
+localxweb clean cache
+localxweb clear cache
+
+# Clean & truncate all service log files (free disk space):
+localxweb clean logs
+localxweb clear logs
+
+# Reset stale process PID registry:
+localxweb clean pids</pre>
+              </div>
+
+              <div class="docs-code-card">
+                <div class="docs-code-header">
+                  <span>Service Control & Clean Uninstall</span>
+                  <button class="btn btn-secondary btn-sm" onclick="copySnippet('code-svc')">Copy</button>
+                </div>
+                <pre id="code-svc" class="snippet-box"># Start or stop full stack:
+localxweb start
+localxweb stop
+
+# Uninstall a specific service:
+localxweb uninstall apache
+localxweb uninstall mysql --purge
+
+# Cleanly uninstall full LocalXWeb stack:
+localxweb uninstall --purge</pre>
+              </div>
+            </div>
+
+            <!-- SECTION 3: DATABASE & CREDENTIALS -->
+            <div class="card docs-direct-section">
+              <div class="docs-section-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+                <h4>3. Database Connection & Credential Patterns</h4>
+              </div>
+              <p>When you create a database with user & password, LocalXWeb permanently stores credentials in <code>~/.localxweb/credentials.json</code>. You can inspect or copy snippets anytime.</p>
+
+              <div class="docs-code-card">
+                <div class="docs-code-header">
+                  <span>Laravel & Modern Frameworks (.env)</span>
+                  <button class="btn btn-secondary btn-sm" onclick="copySnippet('code-env')">Copy</button>
+                </div>
+                <pre id="code-env" class="snippet-box">DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=your_database_name
+DB_USERNAME=your_database_user
+DB_PASSWORD=your_database_password</pre>
+              </div>
+
+              <div class="docs-code-card">
+                <div class="docs-code-header">
+                  <span>PHP PDO Database Connection Script</span>
+                  <button class="btn btn-secondary btn-sm" onclick="copySnippet('code-pdo')">Copy</button>
+                </div>
+                <pre id="code-pdo" class="snippet-box">&lt;?php
+$host = '127.0.0.1';
+$db   = 'your_database_name';
+$user = 'your_database_user';
+$pass = 'your_database_password';
+$port = 3306;
+
+$dsn = "mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4";
+$options = [
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    PDO::ATTR_EMULATE_PREPARES   => false,
+];
+
+try {
+     $pdo = new PDO($dsn, $user, $pass, $options);
+     echo "Database connected successfully!";
+} catch (\PDOException $e) {
+     throw new \PDOException($e->getMessage(), (int)$e->getCode());
+}</pre>
+              </div>
+            </div>
+
+            <!-- SECTION 4: CONFIGURATION -->
+            <div class="card docs-direct-section">
+              <div class="docs-section-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                <h4>4. Configuration Files & Custom Settings</h4>
+              </div>
+              <p>All configuration files are stored cleanly in your user profile under <code>~/.localxweb</code>:</p>
+              <div class="spec-list">
+                <div class="spec-row">
+                  <span>Global Stack Preferences</span>
+                  <code class="code-pill">~/.localxweb/config.json</code>
+                </div>
+                <div class="spec-row">
+                  <span>PHP 8.x Configuration</span>
+                  <code class="code-pill">~/.localxweb/config/php.ini</code>
+                </div>
+                <div class="spec-row">
+                  <span>MySQL / MariaDB Options</span>
+                  <code class="code-pill">~/.localxweb/services/mysql/my.ini</code>
+                </div>
+                <div class="spec-row">
+                  <span>Apache HTTPD Configuration</span>
+                  <code class="code-pill">~/.localxweb/services/apache/conf/httpd.conf</code>
+                </div>
+                <div class="spec-row">
+                  <span>Web Projects DocumentRoot</span>
+                  <code class="code-pill">~/.localxweb/htdocs</code>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 5: MULTI-OS -->
+            <div class="card docs-direct-section">
+              <div class="docs-section-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                <h4>5. Universal Multi-OS Architecture</h4>
+              </div>
+              <p>LocalXWeb auto-detects your platform and uses native package managers or portable binaries:</p>
+              <div class="docs-grid">
+                <div class="card">
+                  <strong>Linux (Debian / Ubuntu)</strong>
+                  <p class="subtitle">Auto-installs via <code>apt-get</code> with systemd / direct daemon control.</p>
+                </div>
+                <div class="card">
+                  <strong>Linux (Fedora / RHEL / Arch)</strong>
+                  <p class="subtitle">Supports <code>dnf</code>, <code>pacman</code>, <code>zypper</code>, and Alpine <code>apk</code>.</p>
+                </div>
+                <div class="card">
+                  <strong>macOS (Apple Silicon & Intel)</strong>
+                  <p class="subtitle">Full native support via Homebrew (<code>/opt/homebrew</code> or <code>/usr/local</code>).</p>
+                </div>
+                <div class="card">
+                  <strong>Windows (10 / 11)</strong>
+                  <p class="subtitle">Direct portable binaries with auto-detection of Microsoft Visual C++ Redistributable.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION 6: TROUBLESHOOTING -->
+            <div class="card docs-direct-section">
+              <div class="docs-section-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                <h4>6. Troubleshooting & Port Conflicts</h4>
+              </div>
+              <p>If a service fails to start, check the common resolutions below:</p>
+              <div class="spec-list">
+                <div class="spec-row">
+                  <span>Port 80 busy (IIS or Skype)</span>
+                  <span class="subtitle">Go to Preferences &gt; change Apache port to 8080 or stop IIS in Windows Services.</span>
+                </div>
+                <div class="spec-row">
+                  <span>Port 3306 busy (Existing MySQL)</span>
+                  <span class="subtitle">Change MySQL port to 3307 in Preferences or stop the Windows MySQL service.</span>
+                </div>
+                <div class="spec-row">
+                  <span>System Doctor Health Check</span>
+                  <span class="subtitle">Run <code>localxweb doctor</code> or open the System Doctor tab for instant port & extension diagnostics.</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- 7. SETTINGS VIEW -->
+        <section id="page-settings" class="page-view">
+          <div class="page-header-bar">
+            <div>
+              <h3>Preferences & Port Configuration</h3>
+              <p class="subtitle">Configure service listener ports, authentication, and server behaviors</p>
+            </div>
+            <button class="btn btn-primary" onclick="saveSettings()">Save Preferences</button>
+          </div>
+
+          <div class="settings-grid">
+            <div class="card">
+              <div class="card-title">Port Allocations</div>
+              <div class="form-group">
+                <label>Dashboard Web Port</label>
+                <input type="number" id="setting-dashboard-port" class="form-input" value="98">
+                <small>LocalXWeb management control panel</small>
+              </div>
+              <div class="form-group">
+                <label>Apache Web Server Port</label>
+                <input type="number" id="setting-apache-port" class="form-input" value="80">
+                <small>Main HTTP listener port</small>
+              </div>
+              <div class="form-group">
+                <label>MySQL / MariaDB Port</label>
+                <input type="number" id="setting-mysql-port" class="form-input" value="3306">
+                <small>Database TCP listener port</small>
+              </div>
+              <div class="form-group">
+                <label>phpMyAdmin GUI Port</label>
+                <input type="number" id="setting-pma-port" class="form-input" value="9999">
+                <small>Database web client listener</small>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-title">Security & PHP Engine</div>
+              <div class="form-group">
+                <label>MySQL Root Password</label>
+                <input type="password" id="setting-mysql-password" class="form-input" placeholder="(empty for default dev setup)">
+                <small>Saved in ~/.localxweb/config.json and synced with phpMyAdmin</small>
+              </div>
+            <div class="card">
+              <div class="card-title">System Maintenance & Cleanup</div>
+              <p class="subtitle" style="margin-bottom: 14px;">Purge temporary download caches, flushes OPcache buffers, and reset service log files.</p>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <button class="btn btn-secondary btn-sm" onclick="clearCacheGui()">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                  Clear Temporary Cache
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="clearLogsGui()">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  Clear All Log Files
+                </button>
+                <button class="btn btn-danger btn-sm" onclick="clearAllGui()">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  Deep Clean Everything (All)
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 8. 404 NOT FOUND VIEW -->
+        <section id="page-404" class="page-view">
+          <div class="error-404-container">
+            <div class="error-badge-glow">
+              <span class="error-code font-mono">404</span>
+              <div class="error-glow-ring"></div>
+            </div>
+            <h2 class="error-title">Page or Endpoint Not Found</h2>
+            <p class="error-subtitle">
+              The requested dashboard route <code id="error-404-path" class="code-pill">/unknown</code> does not exist or has been moved.
+            </p>
+
+            <div class="error-actions-cluster">
+              <button class="btn btn-primary" onclick="navigateTo('dashboard')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                Back to Control Center
+              </button>
+              <button class="btn btn-secondary" onclick="navigateTo('docs')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                Documentation & Guides
+              </button>
+              <button class="btn btn-secondary" onclick="navigateTo('doctor')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+                System Doctor
+              </button>
+            </div>
+
+            <!-- Quick Navigation Suggestions -->
+            <div class="error-suggestions-card card">
+              <div class="card-title">Popular Destinations</div>
+              <div class="suggestion-chips">
+                <a class="chip-item" onclick="navigateTo('dashboard')">🏠 Control Center (/Control-Center)</a>
+                <a class="chip-item" onclick="navigateTo('sites')">📁 Web Projects (/projects)</a>
+                <a class="chip-item" onclick="navigateTo('databases')">🗄️ Database Explorer (/databases)</a>
+                <a class="chip-item" onclick="navigateTo('docs')">📖 Complete Docs (/docs)</a>
+                <a class="chip-item" onclick="navigateTo('logs')">📜 Console Logs (/logs)</a>
+                <a class="chip-item" onclick="navigateTo('settings')">⚙️ Preferences (/settings)</a>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- MODAL: CREATE DATABASE WITH PASSWORD -->
+  <div id="modal-create-db" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h4>Create Database with Password</h4>
+        <button class="modal-close" onclick="closeModal('modal-create-db')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Database Name <span class="required">*</span></label>
+          <input type="text" id="db-modal-name" placeholder="my_database" class="form-input">
+          <small>Use lowercase letters, numbers, and underscores</small>
+        </div>
+
+        <div class="form-group">
+          <label>Collation</label>
+          <select id="db-modal-collation" class="form-select">
+            <option value="utf8mb4_unicode_ci" selected>utf8mb4_unicode_ci (Recommended - Full Unicode)</option>
+            <option value="utf8mb4_general_ci">utf8mb4_general_ci (Fast)</option>
+            <option value="utf8_general_ci">utf8_general_ci (Legacy)</option>
+          </select>
+        </div>
+
+        <div class="card sub-card">
+          <label class="checkbox-label font-bold">
+            <input type="checkbox" id="db-modal-create-user" checked onchange="toggleDedicatedUserFields()">
+            <span>Create dedicated database user with password</span>
+          </label>
+          <small>Generates distinct credentials for your app (.env / PDO ready)</small>
+        </div>
+
+        <div id="dedicated-user-fields" class="sub-form-section">
+          <div class="form-group">
+            <label>Database Username</label>
+            <input type="text" id="db-modal-username" placeholder="db_user" class="form-input">
+          </div>
+          <div class="form-group">
+            <div class="label-with-action">
+              <label>Database Password</label>
+              <button type="button" class="text-btn" onclick="generateDbPassword()">🎲 Generate Secure Password</button>
+            </div>
+            <div class="password-input-wrap">
+              <input type="password" id="db-modal-password" placeholder="Enter or generate password" class="form-input">
+              <button type="button" class="eye-btn" onclick="togglePasswordVisibility('db-modal-password')">👁️</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-create-db')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitCreateDatabase()">Create Database</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CONNECTION INFO & CODE SNIPPETS (REVEALS PASSWORD!) -->
+  <div id="modal-conn-info" class="modal-overlay hidden">
+    <div class="modal-box modal-lg">
+      <div class="modal-header">
+        <h4 id="conn-info-title">Database Credentials & Connection Info</h4>
+        <button class="modal-close" onclick="closeModal('modal-conn-info')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Quick Credential Badges Grid -->
+        <div class="conn-grid">
+          <div class="conn-item">
+            <span>Host</span>
+            <strong id="conn-host">127.0.0.1</strong>
+          </div>
+          <div class="conn-item">
+            <span>Port</span>
+            <strong id="conn-port">3306</strong>
+          </div>
+          <div class="conn-item">
+            <span>Database</span>
+            <strong id="conn-db">-</strong>
+          </div>
+          <div class="conn-item">
+            <span>Username</span>
+            <strong id="conn-user">-</strong>
+          </div>
+          <div class="conn-item highlight">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Password</span>
+              <button class="text-btn" style="font-size: 0.72rem;" onclick="togglePasswordVisibility('conn-pass-raw')">Show/Hide 👁️</button>
+            </div>
+            <div class="pass-reveal-box">
+              <input type="password" id="conn-pass-raw" readonly class="pass-pill-input">
+              <button class="btn btn-secondary btn-sm" onclick="copySnippet('conn-pass-raw')">Copy Pass</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="snippet-section">
+          <div class="snippet-header">
+            <label>Environment File (.env)</label>
+            <button class="btn btn-secondary btn-sm" onclick="copySnippet('snippet-env')">Copy .env</button>
+          </div>
+          <pre id="snippet-env" class="snippet-box"></pre>
+        </div>
+
+        <div class="snippet-section">
+          <div class="snippet-header">
+            <label>PHP PDO Connection Code</label>
+            <button class="btn btn-secondary btn-sm" onclick="copySnippet('snippet-pdo')">Copy PHP</button>
+          </div>
+          <pre id="snippet-pdo" class="snippet-box"></pre>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="closeModal('modal-conn-info')">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ROOT PASSWORD -->
+  <div id="modal-root-pass" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h4>Set MySQL Root Password</h4>
+        <button class="modal-close" onclick="closeModal('modal-root-pass')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="subtitle">This updates the password for the <code>root</code> user across MySQL and automatically reconfigures phpMyAdmin.</p>
+        <div class="form-group">
+          <label>New Root Password</label>
+          <div class="password-input-wrap">
+            <input type="password" id="modal-root-new-pass" placeholder="Leave empty for blank password" class="form-input">
+            <button type="button" class="eye-btn" onclick="togglePasswordVisibility('modal-root-new-pass')">👁️</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-root-pass')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitRootPassword()">Update Root Password</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CREATE PROJECT -->
+  <div id="modal-project" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h4>Create New Web Project</h4>
+        <button class="modal-close" onclick="closeModal('modal-project')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Project Name <span class="required">*</span></label>
+          <input type="text" id="modal-project-name" placeholder="my-awesome-app" class="form-input">
+          <small>Folder will be created inside your web DocumentRoot</small>
+        </div>
+        <div class="form-group">
+          <label>Starter Template</label>
+          <div class="template-selector">
+            <label class="template-card active">
+              <input type="radio" name="project-tpl" value="php" checked>
+              <strong>PHP Starter + Database Pre-Wired</strong>
+              <span>Pre-configured PDO connection to MySQL & modern responsive UI</span>
+            </label>
+            <label class="template-card">
+              <input type="radio" name="project-tpl" value="html">
+              <strong>HTML5 & CSS Modern Starter</strong>
+              <span>Clean responsive HTML boilerplate</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-project')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitCreateProject()">Create Project</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: TABLE VIEWER -->
+  <div id="modal-table" class="modal-overlay hidden">
+    <div class="modal-box modal-lg">
+      <div class="modal-header">
+        <h4 id="table-modal-title">Table Data Viewer</h4>
+        <button class="modal-close" onclick="closeModal('modal-table')">&times;</button>
+      </div>
+      <div class="modal-body" id="table-modal-content">
+        <p>Loading table data...</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-table')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: KEYBOARD SHORTCUTS -->
+  <div id="modal-shortcuts" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h4>⌨️ Keyboard Shortcuts</h4>
+        <button class="modal-close" onclick="closeModal('modal-shortcuts')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="spec-list">
+          <div class="spec-row">
+            <span>Control Center</span>
+            <kbd class="shortcut-key font-mono">1</kbd>
+          </div>
+          <div class="spec-row">
+            <span>Projects & Sites</span>
+            <kbd class="shortcut-key font-mono">2</kbd>
+          </div>
+          <div class="spec-row">
+            <span>Database Explorer</span>
+            <kbd class="shortcut-key font-mono">3</kbd>
+          </div>
+          <div class="spec-row">
+            <span>Documentation & Guides</span>
+            <kbd class="shortcut-key font-mono">4</kbd>
+          </div>
+          <div class="spec-row">
+            <span>System Doctor</span>
+            <kbd class="shortcut-key font-mono">5</kbd>
+          </div>
+          <div class="spec-row">
+            <span>Console Logs</span>
+            <kbd class="shortcut-key font-mono">6</kbd>
+          </div>
+          <div class="spec-row">
+            <span>Preferences</span>
+            <kbd class="shortcut-key font-mono">7</kbd>
+          </div>
+          <div class="spec-row">
+            <span>Toggle Theme (Dark / Light)</span>
+            <kbd class="shortcut-key font-mono">T</kbd>
+          </div>
+          <div class="spec-row">
+            <span>Close Active Modal</span>
+            <kbd class="shortcut-key font-mono">ESC</kbd>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="closeModal('modal-shortcuts')">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast-popup hidden"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
