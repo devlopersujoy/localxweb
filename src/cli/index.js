@@ -535,8 +535,8 @@ program
   .description('Quick launch LocalXWeb apps in browser (dashboard, pma, web, docs, sites, db)')
   .action(async (target) => {
     const port = config.get('dashboardPort') || 98;
-    const apachePort = config.get('apache')?.port || 80;
-    const pmaPort = config.get('phpmyadminPort') || 9999;
+    const apachePort = apache.port || config.get('apache')?.port || 80;
+    const pmaPort = phpmyadmin.port || config.get('phpmyadminPort') || 9999;
 
     const map = {
       dashboard: `http://localhost:${port}/Control-Center`,
