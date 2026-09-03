@@ -151,6 +151,11 @@ AddHandler application/x-httpd-php .php
           });
         }
 
+        if (!platform.isWindows) {
+          content = content.replace(/^User\s+.*$/gm, '# User directive disabled for non-root isolation');
+          content = content.replace(/^Group\s+.*$/gm, '# Group directive disabled for non-root isolation');
+        }
+
         if (phpDirectives && !content.includes('LocalXWeb') && !content.includes('php_module')) {
           content += '\n' + phpDirectives + '\n';
         }
@@ -270,11 +275,22 @@ ${phpDirectives}
       logger.info(`Starting LocalXWeb Web Server (PHP Engine) on http://localhost:${this.port}...`);
       try {
         const iniPath = path.join(platform.configDir, 'php.ini');
-        const args = ['-S', `0.0.0.0:${this.port}`, '-t', this.docRoot];
+        const args = [
+          '-d', 'extension=mysqli',
+          '-d', 'extension=pdo_mysql',
+          '-d', 'extension=mbstring',
+          '-d', 'extension=curl',
+          '-S', `0.0.0.0:${this.port}`,
+          '-t', this.docRoot
+        ];
         if (fs.existsSync(iniPath)) {
           args.unshift('-c', iniPath);
         }
-        this._spawnDetached(phpPath, args, { cwd: this.docRoot });
+        const spawnEnv = {
+          ...process.env,
+          PHP_INI_SCAN_DIR: ':/etc/php/8.3/cli/conf.d:/etc/php/8.2/cli/conf.d:/etc/php/8.1/cli/conf.d:/etc/php/8.0/cli/conf.d'
+        };
+        this._spawnDetached(phpPath, args, { cwd: this.docRoot, env: spawnEnv });
         started = await waitForPort(this.port, 6000);
       } catch (err) {
         logger.error(`PHP Web Engine launch error: ${err.message}`);

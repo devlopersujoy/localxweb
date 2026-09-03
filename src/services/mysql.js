@@ -63,12 +63,18 @@ class MySQLService extends BaseService {
   getIniPath() {
     const dataDirNorm = this.dataDir.replace(/\\/g, '/');
     const logFileNorm = this.logFile.replace(/\\/g, '/');
+    const socketNorm = path.join(platform.localxwebDir, 'mysql.sock').replace(/\\/g, '/');
+    const pidNorm = path.join(platform.localxwebDir, 'mysql.pid').replace(/\\/g, '/');
+    const currentUser = process.env.USER || process.env.USERNAME || 'root';
 
     const iniContent = `[mysqld]
 port = ${this.port}
 bind-address = 127.0.0.1
 datadir = "${dataDirNorm}"
 log-error = "${logFileNorm}"
+socket = "${socketNorm}"
+pid-file = "${pidNorm}"
+${!platform.isWindows ? `user = "${currentUser}"` : ''}
 default-storage-engine = InnoDB
 character-set-server = utf8mb4
 collation-server = utf8mb4_unicode_ci
@@ -78,6 +84,7 @@ skip-name-resolve
 
 [client]
 port = ${this.port}
+socket = "${socketNorm}"
 default-character-set = utf8mb4
 `.trim();
 
@@ -135,10 +142,13 @@ default-character-set = utf8mb4
     ];
 
     let initialized = false;
+    const currentUser = process.env.USER || process.env.USERNAME || 'root';
+    const userArg = platform.isWindows ? '' : ` --user="${currentUser}"`;
+
     for (const tool of installDbCandidates) {
       if (fs.existsSync(tool)) {
         try {
-          execSync(`"${tool}" --datadir="${this.dataDir}"`, {
+          execSync(`"${tool}" --datadir="${this.dataDir}"${userArg}`, {
             stdio: 'ignore',
             timeout: 60000
           });
@@ -154,7 +164,7 @@ default-character-set = utf8mb4
     // Fallback: mysqld --initialize-insecure
     if (!initialized) {
       try {
-        execSync(`"${mysqldPath}" --initialize-insecure --datadir="${this.dataDir}"`, {
+        execSync(`"${mysqldPath}" --initialize-insecure --datadir="${this.dataDir}"${userArg}`, {
           stdio: 'ignore',
           timeout: 60000
         });
@@ -222,7 +232,8 @@ default-character-set = utf8mb4
     const binDir = path.dirname(mysqldPath);
 
     try {
-      const args = platform.isWindows ? [] : [`--defaults-file=${iniPath}`];
+      const currentUser = process.env.USER || process.env.USERNAME || 'root';
+      const args = platform.isWindows ? [] : [`--defaults-file=${iniPath}`, `--user=${currentUser}`];
       this._spawnDetached(mysqldPath, args, {
         cwd: binDir
       });
