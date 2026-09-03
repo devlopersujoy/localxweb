@@ -182,6 +182,17 @@ router.get('/doctor', async (req, res) => {
   }
 });
 
+// Universal Auto-Fix & Self-Healing Endpoint
+router.post('/autofix', async (req, res) => {
+  try {
+    const AutoFixer = require('../utils/autoFixer');
+    const result = await AutoFixer.autoFixPipeline(config);
+    res.json({ success: true, message: 'Auto-Fix pipeline completed successfully', result });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Sites / Projects
 router.get('/sites', (req, res) => {
   try {

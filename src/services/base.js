@@ -16,7 +16,9 @@ class BaseService {
 
   _ensureDirs() {
     [platform.servicesDir, platform.logsDir, this.installDir].forEach(dir => {
-      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      try {
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      } catch {}
     });
   }
 
@@ -170,8 +172,14 @@ class BaseService {
       ...options
     });
 
+    child.on('error', (err) => {
+      logger.warn(`Process notice for ${this.name}: ${err.message}`);
+    });
+
     child.unref();
-    this._savePid(child.pid);
+    if (child.pid) {
+      this._savePid(child.pid);
+    }
     return child;
   }
 

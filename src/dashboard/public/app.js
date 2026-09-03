@@ -1079,6 +1079,23 @@ async function runDoctor() {
   }
 }
 
+async function triggerAutoFixGui() {
+  showToast('Running Universal Auto-Fixer & Self-Healing Pipeline...');
+  try {
+    const res = await fetch('/api/autofix', { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      showToast('Universal Auto-Fix Completed! ✔');
+      runDoctor();
+      fetchStatus();
+    } else {
+      showToast(data.error || 'Auto-fix notice', true);
+    }
+  } catch (err) {
+    showToast(`Auto-fix error: ${err.message}`, true);
+  }
+}
+
 // ==========================================================================
 // Console Logs Studio
 // ==========================================================================

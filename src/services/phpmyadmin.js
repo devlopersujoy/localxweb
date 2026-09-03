@@ -47,11 +47,13 @@ class PhpMyAdminService extends BaseService {
       return true;
     }
 
-    // Check port conflict
+    // Check port conflict with auto-fix
     const portBusy = await checkPort(this.port);
     if (portBusy) {
-      logger.error(`Port ${this.port} is already in use by another application.`);
-      return false;
+      const AutoFixer = require('../utils/autoFixer');
+      const safePort = await AutoFixer.findAvailablePort(this.port + 1);
+      logger.info(`Port ${this.port} is in use. Auto-assigning phpMyAdmin to port ${safePort}...`);
+      this.port = safePort;
     }
 
     this._writePhpMyAdminConfig(pmaPath);
@@ -83,17 +85,18 @@ class PhpMyAdminService extends BaseService {
   }
 
   _writePhpMyAdminConfig(pmaPath) {
-    const mysqlCfg = config.get('mysql') || {};
-    const configFile = path.join(pmaPath, 'config.inc.php');
+    try {
+      const mysqlCfg = config.get('mysql') || {};
+      const configFile = path.join(pmaPath, 'config.inc.php');
 
-    // Always ensure valid config is present with blowfish secret and current MySQL port
-    const secret = this._randomSecret();
-    const mysqlPort = mysqlCfg.port || 3306;
-    const mysqlPass = mysqlCfg.rootPassword || '';
+      // Always ensure valid config is present with blowfish secret and current MySQL port
+      const secret = this._randomSecret();
+      const mysqlPort = mysqlCfg.port || 3306;
+      const mysqlPass = mysqlCfg.rootPassword || '';
 
-    const tmpDir = path.join(platform.localxwebDir, 'tmp').replace(/\\/g, '/');
+      const tmpDir = path.join(platform.localxwebDir, 'tmp').replace(/\\/g, '/');
 
-    const phpConfig = `<?php
+      const phpConfig = `<?php
 declare(strict_types=1);
 
 /**
@@ -119,7 +122,10 @@ $cfg['SendErrorReports'] = 'never';
 $cfg['Console']['Mode'] = 'collapse';
 `;
 
-    fs.writeFileSync(configFile, phpConfig);
+      fs.writeFileSync(configFile, phpConfig);
+    } catch (e) {
+      logger.warn(`phpMyAdmin config notice: ${e.message}`);
+    }
   }
 
   _randomSecret() {

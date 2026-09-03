@@ -31,6 +31,10 @@ program
       logger.info(`Run ${chalk.cyan('localxweb install')} to automatically download and configure them.\n`);
     }
 
+    // Auto-fix pipeline to safely resolve ports, permissions & stale locks on all OS
+    const AutoFixer = require('../utils/autoFixer');
+    await AutoFixer.autoFixPipeline(config);
+
     // Start services
     await startAll();
 
@@ -80,6 +84,8 @@ program
       }
       await svc.start();
     } else {
+      const AutoFixer = require('../utils/autoFixer');
+      await AutoFixer.autoFixPipeline(config);
       await startAll();
     }
   });
@@ -693,6 +699,37 @@ program
   .command('clear [target]')
   .description('Alias for "clean" (clear all, clear cache, clear logs)')
   .action(handleClean);
+
+async function handleAutoFix() {
+  logger.banner();
+  const spinner = ora('Running LocalXWeb Universal Auto-Fixer & Self-Healing Pipeline...').start();
+  try {
+    const AutoFixer = require('../utils/autoFixer');
+    const result = await AutoFixer.autoFixPipeline(config);
+    spinner.succeed(chalk.bold.green('Auto-Fix Pipeline Completed Successfully!\n'));
+
+    console.log(`  ● Core Directories:     ${chalk.green('Verified & Isolated in User-Space')}`);
+    console.log(`  ● Stale PID Tracker:    ${chalk.green('Unlocked & Cleaned')}`);
+    console.log(`  ● Database Storage:     ${chalk.green('Unlocked & Checked')}`);
+    console.log(`  ● Safe Dashboard Port:  ${chalk.cyan(result.dashboardPort)}`);
+    console.log(`  ● Safe Web Server Port: ${chalk.cyan(result.webPort)}`);
+    console.log(`  ● Safe phpMyAdmin Port: ${chalk.cyan(result.pmaPort)}\n`);
+    console.log(chalk.gray('  You can now start LocalXWeb safely on any operating system:'));
+    console.log(`  ${chalk.cyan('localxweb')}\n`);
+  } catch (err) {
+    spinner.fail(chalk.red(`Auto-Fixer notice: ${err.message}`));
+  }
+}
+
+program
+  .command('autofix')
+  .description('Automatically resolve port conflicts, permission restrictions, and stale locks')
+  .action(handleAutoFix);
+
+program
+  .command('fix')
+  .description('Alias for "autofix"')
+  .action(handleAutoFix);
 
 async function startAll() {
   const spinner = ora('Starting Web Server (Apache/PHP)...').start();
