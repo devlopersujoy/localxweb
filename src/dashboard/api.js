@@ -355,14 +355,45 @@ router.get('/config', (req, res) => {
   res.json(config.get());
 });
 
-// Update config
-router.put('/config', (req, res) => {
-  const updates = req.body;
-  for (const [key, value] of Object.entries(updates)) {
-    config.set(key, value);
+// Update config (supports both PUT and POST)
+function handleConfigUpdate(req, res) {
+  try {
+    const updates = req.body || {};
+
+    // Normalize phpmyadmin port if passed as phpmyadmin.port
+    if (updates.phpmyadmin && updates.phpmyadmin.port) {
+      updates.phpmyadminPort = updates.phpmyadmin.port;
+    }
+
+    const current = config.load();
+    for (const [key, value] of Object.entries(updates)) {
+      if (typeof value === 'object' && value !== null && !Array.isArray(value) && typeof current[key] === 'object' && current[key] !== null) {
+        current[key] = { ...current[key], ...value };
+      } else {
+        current[key] = value;
+      }
+    }
+    config.save();
+
+    // Sync in-memory service instances
+    if (updates.apache && updates.apache.port && services.apache) {
+      services.apache.port = updates.apache.port;
+    }
+    if (updates.mysql && updates.mysql.port && services.mysql) {
+      services.mysql.port = updates.mysql.port;
+    }
+    if (updates.phpmyadminPort && services.phpmyadmin) {
+      services.phpmyadmin.port = updates.phpmyadminPort;
+    }
+
+    res.json({ success: true, message: 'Preferences saved successfully', config: config.get() });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
-  res.json(config.get());
-});
+}
+
+router.put('/config', handleConfigUpdate);
+router.post('/config', handleConfigUpdate);
 
 // System Cleaner API (Cache, Logs, All)
 const cleaner = require('../utils/cleaner');

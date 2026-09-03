@@ -176,9 +176,8 @@ function navigateTo(pageId, push = true) {
   if (pageId === 'databases') loadDatabases();
   if (pageId === 'doctor') runDoctor();
   if (pageId === 'logs') loadLogs();
+  if (pageId === 'settings') loadSettings();
 }
-
-
 
 // ==========================================================================
 // Status & Metrics Polling
@@ -187,7 +186,8 @@ async function refreshAllData() {
   await Promise.all([
     fetchStatus(),
     fetchMetrics(),
-    fetchBadgeCounts()
+    fetchBadgeCounts(),
+    loadSettings()
   ]);
 }
 
@@ -1194,6 +1194,33 @@ async function clearAllGui() {
 // ==========================================================================
 // Preferences & Port Configuration
 // ==========================================================================
+async function loadSettings() {
+  try {
+    const res = await fetch('/api/config');
+    if (!res.ok) return;
+    const cfg = await res.json();
+
+    const dashInput = document.getElementById('setting-dashboard-port');
+    const apacheInput = document.getElementById('setting-apache-port');
+    const mysqlInput = document.getElementById('setting-mysql-port');
+    const pmaInput = document.getElementById('setting-pma-port');
+    const passInput = document.getElementById('setting-mysql-password');
+
+    if (dashInput && cfg.dashboardPort !== undefined) dashInput.value = cfg.dashboardPort;
+    if (apacheInput && cfg.apache && cfg.apache.port !== undefined) apacheInput.value = cfg.apache.port;
+    if (mysqlInput && cfg.mysql && cfg.mysql.port !== undefined) mysqlInput.value = cfg.mysql.port;
+    if (pmaInput) {
+      const p = cfg.phpmyadminPort || (cfg.phpmyadmin && cfg.phpmyadmin.port);
+      if (p !== undefined) pmaInput.value = p;
+    }
+    if (passInput && cfg.mysql && cfg.mysql.rootPassword !== undefined) {
+      passInput.value = cfg.mysql.rootPassword;
+    }
+  } catch (err) {
+    console.error('Failed to load settings:', err);
+  }
+}
+
 async function saveSettings() {
   const dbPort = parseInt(document.getElementById('setting-dashboard-port').value, 10);
   const apachePort = parseInt(document.getElementById('setting-apache-port').value, 10);
@@ -1201,20 +1228,35 @@ async function saveSettings() {
   const pmaPort = parseInt(document.getElementById('setting-pma-port').value, 10);
   const password = document.getElementById('setting-mysql-password').value;
 
+  if (isNaN(dbPort) || isNaN(apachePort) || isNaN(mysqlPort) || isNaN(pmaPort)) {
+    showToast('Please enter valid numeric port numbers!', true);
+    return;
+  }
+
+  showToast('Saving preferences & port configuration...');
+
   try {
-    await fetch('/api/config', {
+    const res = await fetch('/api/config', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         dashboardPort: dbPort,
         apache: { port: apachePort },
         mysql: { port: mysqlPort, rootPassword: password },
-        phpmyadmin: { port: pmaPort }
+        phpmyadminPort: pmaPort
       })
     });
-    showToast('Preferences saved successfully! ✔');
-  } catch {
-    showToast('Failed to save preferences', true);
+
+    const data = await res.json();
+    if (res.ok && data.success !== false) {
+      showToast('Preferences & ports saved successfully! ✔');
+      loadSettings();
+      fetchStatus();
+    } else {
+      showToast(data.error || 'Failed to save preferences', true);
+    }
+  } catch (err) {
+    showToast(`Error saving preferences: ${err.message}`, true);
   }
 }
 
