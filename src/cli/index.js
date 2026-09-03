@@ -36,11 +36,15 @@ program
 
     // Start dashboard
     const { startDashboard } = require('../dashboard/server');
-    const port = config.get('dashboardPort') || 98;
+    let port = config.get('dashboardPort') || 98;
+    const isNonRootPosix = !platform.isWindows && typeof process.getuid === 'function' && process.getuid() !== 0;
+    if (isNonRootPosix && port < 1024) {
+      port = 9898;
+    }
     startDashboard(port);
 
-    const apachePort = config.get('apache')?.port || 80;
-    const pmaPort = config.get('phpmyadminPort') || 9999;
+    const apachePort = apache.port || config.get('apache')?.port || 80;
+    const pmaPort = phpmyadmin.port || config.get('phpmyadminPort') || 9999;
 
     console.log(chalk.bold.green('\n  ✔ LocalXWeb Stack is Online!\n'));
     console.log(`  ${chalk.bold('Dashboard:')}   ${chalk.cyan(`http://localhost:${port}`)}`);
@@ -691,28 +695,44 @@ program
   .action(handleClean);
 
 async function startAll() {
-  const spinner = ora('Starting Apache...').start();
-  if (apache.isInstalled()) {
-    await apache.start();
-    spinner.succeed('Apache is running');
-  } else {
-    spinner.warn('Apache is not installed');
+  const spinner = ora('Starting Web Server (Apache/PHP)...').start();
+  try {
+    const ok = await apache.start();
+    if (ok) {
+      spinner.succeed('Web Server is running');
+    } else {
+      spinner.warn('Web Server could not start');
+    }
+  } catch (e) {
+    spinner.warn(`Web Server notice: ${e.message}`);
   }
 
   const spinner2 = ora('Starting MySQL/MariaDB...').start();
-  if (mysql.isInstalled()) {
-    await mysql.start();
-    spinner2.succeed('MySQL/MariaDB is running');
-  } else {
-    spinner2.warn('MySQL/MariaDB is not installed');
+  try {
+    const ok = await mysql.start();
+    if (ok) {
+      spinner2.succeed('MySQL/MariaDB is running');
+    } else {
+      spinner2.warn('MySQL/MariaDB is not installed or not running');
+    }
+  } catch (e) {
+    spinner2.warn(`MySQL notice: ${e.message}`);
   }
 
   const spinner3 = ora('Starting phpMyAdmin...').start();
-  if (phpmyadmin.isInstalled()) {
-    await phpmyadmin.start();
-    spinner3.succeed('phpMyAdmin is running');
-  } else {
-    spinner3.warn('phpMyAdmin is not installed');
+  try {
+    if (phpmyadmin.isInstalled()) {
+      const ok = await phpmyadmin.start();
+      if (ok) {
+        spinner3.succeed('phpMyAdmin is running');
+      } else {
+        spinner3.warn('phpMyAdmin could not start');
+      }
+    } else {
+      spinner3.warn('phpMyAdmin is not installed');
+    }
+  } catch (e) {
+    spinner3.warn(`phpMyAdmin notice: ${e.message}`);
   }
 }
 

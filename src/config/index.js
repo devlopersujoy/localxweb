@@ -2,12 +2,14 @@ const fs = require('fs');
 const path = require('path');
 const platform = require('../utils/platform');
 
+const isNonRootPosix = !platform.isWindows && typeof process.getuid === 'function' && process.getuid() !== 0;
+
 const DEFAULT_CONFIG = {
-  dashboardPort: 98,
+  dashboardPort: isNonRootPosix ? 9898 : 98,
   phpmyadminPort: 9999,
   apache: {
-    port: 80,
-    sslPort: 443,
+    port: isNonRootPosix ? 8080 : 80,
+    sslPort: isNonRootPosix ? 8443 : 443,
     docRoot: platform.htdocsDir
   },
   mysql: {
@@ -31,7 +33,7 @@ class Config {
   _ensureDir() {
     const dir = path.dirname(this.configPath);
     if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
+      try { fs.mkdirSync(dir, { recursive: true }); } catch {}
     }
   }
 
@@ -40,18 +42,32 @@ class Config {
     this._ensureDir();
 
     if (fs.existsSync(this.configPath)) {
-      const raw = fs.readFileSync(this.configPath, 'utf8');
-      this._config = { ...DEFAULT_CONFIG, ...JSON.parse(raw) };
+      try {
+        const raw = fs.readFileSync(this.configPath, 'utf8');
+        this._config = { ...DEFAULT_CONFIG, ...JSON.parse(raw) };
+      } catch {
+        this._config = { ...DEFAULT_CONFIG };
+      }
     } else {
       this._config = { ...DEFAULT_CONFIG };
-      this.save();
+      try { this.save(); } catch {}
     }
+
+    // Auto-adjust ports below 1024 for non-root users on Linux/macOS
+    if (isNonRootPosix && this._config) {
+      if (this._config.dashboardPort < 1024) this._config.dashboardPort = 9898;
+      if (this._config.apache && this._config.apache.port < 1024) this._config.apache.port = 8080;
+      if (this._config.apache && this._config.apache.sslPort < 1024) this._config.apache.sslPort = 8443;
+    }
+
     return this._config;
   }
 
   save() {
     this._ensureDir();
-    fs.writeFileSync(this.configPath, JSON.stringify(this._config || DEFAULT_CONFIG, null, 2));
+    try {
+      fs.writeFileSync(this.configPath, JSON.stringify(this._config || DEFAULT_CONFIG, null, 2));
+    } catch {}
   }
 
   get(key) {

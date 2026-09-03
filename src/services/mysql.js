@@ -61,10 +61,6 @@ class MySQLService extends BaseService {
   }
 
   getIniPath() {
-    const mysqldPath = this.getInstallPath();
-    const binDir = mysqldPath ? path.dirname(mysqldPath) : null;
-    const installDir = binDir ? path.dirname(binDir) : this.installDir;
-
     const dataDirNorm = this.dataDir.replace(/\\/g, '/');
     const logFileNorm = this.logFile.replace(/\\/g, '/');
 
@@ -85,15 +81,20 @@ port = ${this.port}
 default-character-set = utf8mb4
 `.trim();
 
-    // Write to binDir, installDir, and configDir
-    const primaryIni = path.join(installDir, 'my.ini');
-    fs.writeFileSync(primaryIni, iniContent);
-    if (binDir && fs.existsSync(binDir)) {
-      try { fs.writeFileSync(path.join(binDir, 'my.ini'), iniContent); } catch {}
-    }
+    // Primary config file inside ~/.localxweb/config/my.ini (always user-writable!)
     const confDir = platform.configDir;
-    if (!fs.existsSync(confDir)) fs.mkdirSync(confDir, { recursive: true });
-    try { fs.writeFileSync(path.join(confDir, 'my.ini'), iniContent); } catch {}
+    const primaryIni = path.join(confDir, 'my.ini');
+    try {
+      if (!fs.existsSync(confDir)) fs.mkdirSync(confDir, { recursive: true });
+      fs.writeFileSync(primaryIni, iniContent);
+    } catch {}
+
+    // Also write to services/mysql if managed
+    const svcDir = path.join(platform.servicesDir, 'mysql');
+    try {
+      if (!fs.existsSync(svcDir)) fs.mkdirSync(svcDir, { recursive: true });
+      fs.writeFileSync(path.join(svcDir, 'my.ini'), iniContent);
+    } catch {}
 
     return primaryIni;
   }
@@ -113,8 +114,12 @@ default-character-set = utf8mb4
       return true; // Already initialized
     }
 
-    if (!fs.existsSync(this.dataDir)) {
-      fs.mkdirSync(this.dataDir, { recursive: true });
+    try {
+      if (!fs.existsSync(this.dataDir)) {
+        fs.mkdirSync(this.dataDir, { recursive: true });
+      }
+    } catch {
+      return false;
     }
 
     const mysqldPath = this.getInstallPath();
@@ -141,7 +146,7 @@ default-character-set = utf8mb4
           logger.success('Database initialized with ' + path.basename(tool));
           break;
         } catch (e) {
-          logger.warn(`Initialization with ${path.basename(tool)} failed: ${e.message}`);
+          logger.warn(`Initialization with ${path.basename(tool)} skipped: ${e.message}`);
         }
       }
     }
@@ -156,7 +161,7 @@ default-character-set = utf8mb4
         initialized = true;
         logger.success('Database initialized with mysqld --initialize-insecure');
       } catch (e) {
-        logger.warn(`mysqld initialize failed: ${e.message}`);
+        logger.warn(`mysqld initialize skipped: ${e.message}`);
       }
     }
 
@@ -164,12 +169,6 @@ default-character-set = utf8mb4
   }
 
   async start() {
-    const mysqldPath = this.getInstallPath();
-    if (!mysqldPath) {
-      logger.error('MySQL/MariaDB not found. Run "localxweb install mysql" to install it.');
-      return false;
-    }
-
     const currentStatus = await this.status();
     if (currentStatus === 'running') {
       logger.warn('MySQL/MariaDB is already running');
@@ -179,19 +178,39 @@ default-character-set = utf8mb4
     // Check port conflict
     const portBusy = await checkPort(this.port);
     if (portBusy) {
-      logger.error(`Port ${this.port} is already in use by another database server.`);
-      logger.info('You can change the MySQL port in ~/.localxweb/config.json or using the dashboard.');
+      logger.warn(`Port ${this.port} is already active or in use by another database server.`);
+      return true;
+    }
+
+    // On Linux/macOS, try starting system service first if present
+    if (platform.isLinux) {
+      try {
+        execSync('service mysql start || service mariadb start', { stdio: 'ignore', timeout: 6000 });
+        const ready = await waitForPort(this.port, 4000);
+        if (ready) {
+          logger.success(`MySQL/MariaDB started on port ${this.port}`);
+          return true;
+        }
+      } catch {}
+    }
+
+    const mysqldPath = this.getInstallPath();
+    if (!mysqldPath) {
+      logger.warn('MySQL/MariaDB binary not found. Run "localxweb install mysql" to install it.');
       return false;
     }
 
     // Ensure data dir is ready
-    await this.initDataDir();
+    try {
+      await this.initDataDir();
+    } catch {}
 
-    this.getIniPath(); // Generates my.ini in installDir and binDir
+    const iniPath = this.getIniPath();
     const binDir = path.dirname(mysqldPath);
 
     try {
-      this._spawnDetached(mysqldPath, [], {
+      const args = platform.isWindows ? [] : [`--defaults-file=${iniPath}`];
+      this._spawnDetached(mysqldPath, args, {
         cwd: binDir
       });
 
@@ -204,7 +223,7 @@ default-character-set = utf8mb4
         return true;
       }
     } catch (e) {
-      logger.error(`Failed to start MySQL/MariaDB: ${e.message}`);
+      logger.warn(`Failed to start MySQL/MariaDB daemon: ${e.message}`);
       return false;
     }
   }

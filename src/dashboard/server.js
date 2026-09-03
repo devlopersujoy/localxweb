@@ -16,19 +16,37 @@ function startDashboard(port) {
   });
 
   // Clean HTML5 URL routing: /Control-Center, /projects, /databases, /doctor, /logs, /docs, /settings, /404, or any route
-  app.get('*', (req, res, next) => {
+  app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
   });
 
-  const server = app.listen(port, () => {
-    // Dashboard started silently - logging handled by caller
-  });
+  let activePort = port || 98;
+  const isNonRootPosix = process.platform !== 'win32' && typeof process.getuid === 'function' && process.getuid() !== 0;
+  if (isNonRootPosix && activePort < 1024) {
+    activePort = 9898;
+  }
 
-  server.on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
-      console.error(`Port ${port} is already in use. Dashboard may already be running.`);
+  let server;
+  try {
+    server = app.listen(activePort, () => {
+      // Dashboard started
+    });
+
+    server.on('error', (err) => {
+      if (err.code === 'EACCES') {
+        console.error(`Port ${activePort} requires root privileges. Falling back to port 9898...`);
+        try {
+          app.listen(9898);
+        } catch {}
+      } else if (err.code === 'EADDRINUSE') {
+        console.error(`Port ${activePort} is already in use. Dashboard may already be running.`);
+      }
+    });
+  } catch (err) {
+    if (err.code === 'EACCES') {
+      try { server = app.listen(9898); } catch {}
     }
-  });
+  }
 
   return server;
 }

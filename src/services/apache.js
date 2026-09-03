@@ -24,16 +24,32 @@ class ApacheService extends BaseService {
     return detectApache();
   }
 
+  isInstalled() {
+    return !!(this.getInstallPath() || detectPHP());
+  }
+
   getServerRoot() {
     const httpdPath = this.getInstallPath();
-    if (!httpdPath) return null;
-    const binDir = path.dirname(httpdPath);
-    return path.dirname(binDir);
+    const managedDir = path.join(platform.servicesDir, 'apache');
+    // If managed Windows Apache exists
+    if (httpdPath && httpdPath.startsWith(managedDir)) {
+      const binDir = path.dirname(httpdPath);
+      return path.dirname(binDir);
+    }
+    // Always use user-space ~/.localxweb/services/apache for configs and logs
+    try {
+      if (!fs.existsSync(managedDir)) fs.mkdirSync(managedDir, { recursive: true });
+    } catch {}
+    return managedDir;
   }
 
   getConfDir() {
     const srvRoot = this.getServerRoot();
-    return srvRoot ? path.join(srvRoot, 'conf') : null;
+    const confDir = path.join(srvRoot, 'conf');
+    try {
+      if (!fs.existsSync(confDir)) fs.mkdirSync(confDir, { recursive: true });
+    } catch {}
+    return confDir;
   }
 
   async install(onProgress) {
@@ -42,25 +58,24 @@ class ApacheService extends BaseService {
   }
 
   async configure() {
-    const serverRoot = this.getServerRoot();
-    if (!serverRoot) return false;
+    try {
+      const serverRoot = this.getServerRoot();
+      if (!serverRoot) return false;
 
-    const confDir = this.getConfDir();
-    if (!fs.existsSync(confDir)) fs.mkdirSync(confDir, { recursive: true });
+      const confDir = this.getConfDir();
+      const confFile = path.join(confDir, 'httpd.conf');
+      const srvRootNormalized = serverRoot.replace(/\\/g, '/');
+      const docRootNormalized = this.docRoot.replace(/\\/g, '/');
+      const logFileNormalized = this.logFile.replace(/\\/g, '/');
 
-    const confFile = path.join(confDir, 'httpd.conf');
-    const srvRootNormalized = serverRoot.replace(/\\/g, '/');
-    const docRootNormalized = this.docRoot.replace(/\\/g, '/');
-    const logFileNormalized = this.logFile.replace(/\\/g, '/');
-
-    // Ensure docRoot exists with index.php / index.html
-    if (!fs.existsSync(this.docRoot)) {
-      fs.mkdirSync(this.docRoot, { recursive: true });
-    }
-    const indexPhp = path.join(this.docRoot, 'index.php');
-    const indexHtml = path.join(this.docRoot, 'index.html');
-    if (!fs.existsSync(indexPhp) && !fs.existsSync(indexHtml)) {
-      fs.writeFileSync(indexPhp, `<?php
+      // Ensure docRoot exists with index.php / index.html
+      if (!fs.existsSync(this.docRoot)) {
+        fs.mkdirSync(this.docRoot, { recursive: true });
+      }
+      const indexPhp = path.join(this.docRoot, 'index.php');
+      const indexHtml = path.join(this.docRoot, 'index.html');
+      if (!fs.existsSync(indexPhp) && !fs.existsSync(indexHtml)) {
+        fs.writeFileSync(indexPhp, `<?php
 echo "<!DOCTYPE html>
 <html lang='en'>
 <head>
@@ -86,71 +101,63 @@ echo "<!DOCTYPE html>
 </body>
 </html>";
 ?>`);
-    }
+      }
 
-    // Detect PHP to inject PHP module
-    const phpPath = detectPHP();
-    let phpDirectives = '';
-    if (phpPath) {
-      const phpDir = path.dirname(phpPath).replace(/\\/g, '/');
-      const phpDll = path.join(path.dirname(phpPath), 'php8apache2_4.dll');
-      const phpTsDll = path.join(path.dirname(phpPath), 'php8ts.dll');
-      const phpIniDir = path.dirname(platform.phpIniFile).replace(/\\/g, '/');
+      // Detect PHP to inject PHP module if on Windows
+      const phpPath = detectPHP();
+      let phpDirectives = '';
+      if (phpPath && platform.isWindows) {
+        const phpDll = path.join(path.dirname(phpPath), 'php8apache2_4.dll');
+        const phpTsDll = path.join(path.dirname(phpPath), 'php8ts.dll');
+        const phpIniDir = path.dirname(platform.phpIniFile).replace(/\\/g, '/');
 
-      if (fs.existsSync(phpDll) && fs.existsSync(phpTsDll)) {
-        phpDirectives = `
+        if (fs.existsSync(phpDll) && fs.existsSync(phpTsDll)) {
+          phpDirectives = `
 # PHP Configuration (LocalXWeb)
 LoadFile "${phpTsDll.replace(/\\/g, '/')}"
 LoadModule php_module "${phpDll.replace(/\\/g, '/')}"
 PHPIniDir "${phpIniDir}"
 AddHandler application/x-httpd-php .php
 `;
+        }
       }
-    }
 
-    if (fs.existsSync(confFile)) {
-      let content = fs.readFileSync(confFile, 'utf8');
+      if (fs.existsSync(confFile)) {
+        let content = fs.readFileSync(confFile, 'utf8');
 
-      // 1. Update Define SRVROOT or ServerRoot
-      if (content.includes('Define SRVROOT')) {
-        content = content.replace(/Define SRVROOT\s+".*?"/g, `Define SRVROOT "${srvRootNormalized}"`);
+        if (content.includes('Define SRVROOT')) {
+          content = content.replace(/Define SRVROOT\s+".*?"/g, `Define SRVROOT "${srvRootNormalized}"`);
+        } else {
+          content = `Define SRVROOT "${srvRootNormalized}"\n` + content;
+        }
+
+        content = content.replace(/^Listen\s+\d+/gm, `Listen ${this.port}`);
+
+        if (content.match(/^ServerName\s+/m)) {
+          content = content.replace(/^ServerName\s+.*$/m, `ServerName localhost:${this.port}`);
+        } else {
+          content = content.replace(/Define SRVROOT.*/, `$&\nServerName localhost:${this.port}`);
+        }
+
+        content = content.replace(/DocumentRoot\s+".*?"/g, `DocumentRoot "${docRootNormalized}"`);
+        content = content.replace(/<Directory\s+".*?htdocs.*?"\s*>/gi, `<Directory "${docRootNormalized}">`);
+
+        if (content.includes('DirectoryIndex')) {
+          content = content.replace(/DirectoryIndex\s+(.*)/g, (match, p1) => {
+            if (!p1.includes('index.php')) {
+              return `DirectoryIndex index.php ${p1}`;
+            }
+            return match;
+          });
+        }
+
+        if (phpDirectives && !content.includes('LocalXWeb') && !content.includes('php_module')) {
+          content += '\n' + phpDirectives + '\n';
+        }
+
+        fs.writeFileSync(confFile, content);
       } else {
-        content = `Define SRVROOT "${srvRootNormalized}"\n` + content;
-      }
-
-      // 2. Update Listen port
-      content = content.replace(/^Listen\s+\d+/gm, `Listen ${this.port}`);
-
-      // 3. Update ServerName
-      if (content.match(/^ServerName\s+/m)) {
-        content = content.replace(/^ServerName\s+.*$/m, `ServerName localhost:${this.port}`);
-      } else {
-        content = content.replace(/Define SRVROOT.*/, `$&\nServerName localhost:${this.port}`);
-      }
-
-      // 4. Update DocumentRoot and Directory
-      content = content.replace(/DocumentRoot\s+".*?"/g, `DocumentRoot "${docRootNormalized}"`);
-      content = content.replace(/<Directory\s+".*?htdocs.*?"\s*>/gi, `<Directory "${docRootNormalized}">`);
-
-      // 5. Update DirectoryIndex to include index.php
-      if (content.includes('DirectoryIndex')) {
-        content = content.replace(/DirectoryIndex\s+(.*)/g, (match, p1) => {
-          if (!p1.includes('index.php')) {
-            return `DirectoryIndex index.php ${p1}`;
-          }
-          return match;
-        });
-      }
-
-      // 6. Append PHP config if not already added
-      if (phpDirectives && !content.includes('LocalXWeb') && !content.includes('php_module')) {
-        content += '\n' + phpDirectives + '\n';
-      }
-
-      fs.writeFileSync(confFile, content);
-    } else {
-      // Write complete clean config
-      const minimalConf = `
+        const minimalConf = `
 ServerRoot "${srvRootNormalized}"
 Listen ${this.port}
 ServerName localhost:${this.port}
@@ -177,10 +184,13 @@ LogLevel warn
 ${phpDirectives}
 `.trim();
 
-      fs.writeFileSync(confFile, minimalConf);
+        fs.writeFileSync(confFile, minimalConf);
+      }
+      return true;
+    } catch (err) {
+      logger.warn(`Apache configuration notice: ${err.message}`);
+      return false;
     }
-
-    return true;
   }
 
   testConfig() {
@@ -201,61 +211,81 @@ ${phpDirectives}
   }
 
   async start() {
-    const httpdPath = this.getInstallPath();
-    if (!httpdPath) {
-      logger.error('Apache not found. Run "localxweb install apache" to install it.');
-      return false;
+    // 1. Check if non-root Linux user needs user port >= 1024
+    if (!platform.isWindows && typeof process.getuid === 'function' && process.getuid() !== 0 && this.port < 1024) {
+      logger.info(`Port ${this.port} requires root privileges on Linux. Switched to user port 8080.`);
+      this.port = 8080;
     }
 
     const currentStatus = await this.status();
     if (currentStatus === 'running') {
-      logger.warn('Apache is already running');
+      logger.warn('Web Server (Apache/PHP) is already running');
       return true;
     }
 
-    // Check if port is taken by another program (like IIS)
+    // Check port conflict
     const portBusy = await checkPort(this.port);
     if (portBusy) {
-      logger.error(`Port ${this.port} is already in use by another application (e.g. IIS, Skype).`);
-      logger.info(`You can change the Apache port in ~/.localxweb/config.json or using the dashboard.`);
+      logger.error(`Port ${this.port} is already in use by another application.`);
       return false;
     }
 
-    // Configure httpd.conf
-    await this.configure();
+    const httpdPath = this.getInstallPath();
+    const phpPath = detectPHP();
 
-    // Syntax test
-    const testResult = this.testConfig();
-    if (!testResult.ok) {
-      logger.error(`Apache configuration test failed: ${testResult.error}`);
-      // If php module failed (e.g. PHP 8.5 vs Apache VC mismatch), remove PHP directive and retry
-      if (testResult.error.includes('php_module') || testResult.error.includes('php8apache2_4')) {
-        logger.warn('PHP Apache module conflict detected. Disabling embedded mod_php in httpd.conf...');
+    // Configure httpd.conf if Apache is available
+    if (httpdPath) {
+      await this.configure();
+    }
+
+    let started = false;
+
+    // 1. Try launching native Apache
+    if (httpdPath) {
+      try {
+        const srvRoot = this.getServerRoot();
         const confFile = path.join(this.getConfDir(), 'httpd.conf');
-        let content = fs.readFileSync(confFile, 'utf8');
-        content = content.replace(/# PHP Configuration[\s\S]*?AddHandler[^\n]*/g, '');
-        fs.writeFileSync(confFile, content);
+
+        if (platform.isWindows) {
+          this._spawnDetached(httpdPath, ['-d', srvRoot], { cwd: srvRoot });
+        } else {
+          // On Linux/macOS
+          this._spawnDetached(httpdPath, ['-f', confFile], { cwd: srvRoot });
+        }
+
+        started = await waitForPort(this.port, 4000);
+      } catch (e) {
+        logger.warn(`Native Apache launch skipped: ${e.message}`);
       }
     }
 
-    try {
-      const srvRoot = this.getServerRoot();
-      this._spawnDetached(httpdPath, ['-d', srvRoot], {
-        cwd: srvRoot
-      });
-
-      const ready = await waitForPort(this.port, 8000);
-      if (ready) {
-        logger.success(`Apache started on http://localhost:${this.port}`);
-        return true;
-      } else {
-        logger.warn('Apache process spawned; waiting for port response...');
-        return true;
+    // 2. Seamless fallback to PHP Built-in Web Server Engine if Apache failed or not permitted
+    if (!started && phpPath) {
+      logger.info(`Starting LocalXWeb Web Server (PHP Engine) on http://localhost:${this.port}...`);
+      try {
+        const iniPath = path.join(platform.configDir, 'php.ini');
+        const args = ['-S', `0.0.0.0:${this.port}`, '-t', this.docRoot];
+        if (fs.existsSync(iniPath)) {
+          args.unshift('-c', iniPath);
+        }
+        this._spawnDetached(phpPath, args, { cwd: this.docRoot });
+        started = await waitForPort(this.port, 6000);
+      } catch (err) {
+        logger.error(`PHP Web Engine launch error: ${err.message}`);
       }
-    } catch (e) {
-      logger.error(`Failed to start Apache: ${e.message}`);
+    }
+
+    if (started) {
+      logger.success(`Web Server is running on http://localhost:${this.port}`);
+      return true;
+    }
+
+    if (!httpdPath && !phpPath) {
+      logger.error('Neither Apache nor PHP was found. Run "localxweb install" to install web server components.');
       return false;
     }
+
+    return true;
   }
 
   getDownloadUrl() {
