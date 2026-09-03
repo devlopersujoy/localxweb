@@ -10,10 +10,12 @@ const platform = require('../utils/platform');
 const { apache, mysql, php, phpmyadmin, dbManager } = createServices();
 const services = { apache, mysql, php, phpmyadmin };
 
+const pkg = require('../../package.json');
+
 program
   .name('localxweb')
   .description('LocalXWeb: XAMPP-like full local development server stack')
-  .version('1.1.0');
+  .version(pkg.version || '1.1.0', '-v, --version');
 
 // Default command - start everything and open dashboard
 program
