@@ -285,6 +285,46 @@ class PackageManager {
 
     throw new Error(`Could not install ${name} on macOS. Please install Homebrew or install ${name} manually.`);
   }
+
+  async installPhpExtensions(missingExts = ['mysqli', 'mbstring', 'curl', 'xml', 'zip', 'gd']) {
+    if (platform.isLinux) {
+      const pkgManager = platform.getPackageManager();
+      const sudo = (process.getuid && process.getuid() === 0) ? '' : 'sudo ';
+      try {
+        if (pkgManager === 'apt') {
+          logger.info(`Auto-installing missing PHP extensions (${missingExts.join(', ')})...`);
+          execSync(`${sudo}apt-get update -y && ${sudo}apt-get install -y php-mysql php-mbstring php-curl php-xml php-zip php-gd php-intl php-fileinfo`, {
+            stdio: 'ignore',
+            timeout: 90000
+          });
+          logger.success('PHP extensions installed successfully via apt.');
+          return true;
+        } else if (pkgManager === 'apk') {
+          execSync(`${sudo}apk add --no-cache php-mysqli php-pdo_mysql php-mbstring php-curl php-openssl php-xml php-zip php-gd`, {
+            stdio: 'ignore',
+            timeout: 60000
+          });
+          return true;
+        } else if (pkgManager === 'dnf') {
+          execSync(`${sudo}dnf install -y php-mysqlnd php-mbstring php-gd php-xml php-zip`, {
+            stdio: 'ignore',
+            timeout: 60000
+          });
+          return true;
+        }
+      } catch (e) {
+        logger.warn(`Notice: Could not automatically install PHP packages via ${pkgManager}: ${e.message}`);
+      }
+    } else if (platform.isMac) {
+      try {
+        const brewBin = platform.isAppleSilicon ? '/opt/homebrew/bin/brew' : '/usr/local/bin/brew';
+        const brewCmd = platform.hasBinary('brew') ? 'brew' : brewBin;
+        execSync(`${brewCmd} install php`, { stdio: 'ignore', timeout: 90000 });
+        return true;
+      } catch {}
+    }
+    return false;
+  }
 }
 
 module.exports = new PackageManager();

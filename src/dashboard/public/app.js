@@ -194,6 +194,12 @@ async function refreshAllData() {
 async function pollStatusAndMetrics() {
   await fetchStatus();
   await fetchMetrics();
+  // Keep Preferences & Port inputs synchronized in real time
+  const activeInput = document.activeElement;
+  const isTypingInSettings = activeInput && activeInput.closest && activeInput.closest('#page-settings');
+  if (!isTypingInSettings) {
+    loadSettings();
+  }
 }
 
 async function fetchBadgeCounts() {

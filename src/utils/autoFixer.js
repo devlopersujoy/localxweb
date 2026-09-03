@@ -188,6 +188,15 @@ class AutoFixer {
     this.cleanupStalePids();
     this.unlockDatabaseStorage(platform.mysqlDataDir);
 
+    // Auto-setup & verify PHP extensions (mysqli, pdo_mysql, mbstring, etc.)
+    try {
+      const PHPService = require('../services/php');
+      const phpSvc = new PHPService();
+      if (phpSvc.isInstalled()) {
+        await phpSvc.ensurePhpExtensions();
+      }
+    } catch {}
+
     // Resolve safe ports
     const curDashPort = config.get('dashboardPort') || 98;
     const safeDashPort = await this.findAvailablePort(curDashPort);

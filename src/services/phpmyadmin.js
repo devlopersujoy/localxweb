@@ -57,18 +57,35 @@ class PhpMyAdminService extends BaseService {
       this.port = safePort;
     }
 
+    // Ensure required PHP extensions (mysqli, mbstring, etc.) are installed and active
+    if (this.phpService && this.phpService.ensurePhpExtensions) {
+      await this.phpService.ensurePhpExtensions();
+    }
+
     this._writePhpMyAdminConfig(pmaPath);
 
     // Get php.ini with mysqli & mbstring enabled
     const iniPath = this.phpService.getPhpIniPath();
 
+    const args = [
+      '-c', iniPath,
+      '-d', 'extension=mysqli',
+      '-d', 'extension=pdo_mysql',
+      '-d', 'extension=mbstring',
+      '-d', 'extension=curl',
+      '-S', `127.0.0.1:${this.port}`,
+      '-t', pmaPath
+    ];
+
+    const spawnEnv = {
+      ...process.env,
+      PHP_INI_SCAN_DIR: ':/etc/php/8.3/cli/conf.d:/etc/php/8.2/cli/conf.d:/etc/php/8.1/cli/conf.d:/etc/php/8.0/cli/conf.d'
+    };
+
     try {
-      this._spawnDetached(phpPath, [
-        '-c', iniPath,
-        '-S', `127.0.0.1:${this.port}`,
-        '-t', pmaPath
-      ], {
-        cwd: pmaPath
+      this._spawnDetached(phpPath, args, {
+        cwd: pmaPath,
+        env: spawnEnv
       });
 
       const ready = await waitForPort(this.port, 8000);
