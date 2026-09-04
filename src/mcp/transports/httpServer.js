@@ -37,11 +37,48 @@ class McpHttpServer {
       next();
     });
 
+    // Authentication Verification Middleware
+    const verifyMcpAuth = (req, res, next) => {
+      const isAuthEnabled = !!config.get('mcpAuthEnabled');
+      if (!isAuthEnabled) return next();
+
+      const validKey = config.get('mcpApiKey');
+      if (!validKey) return next();
+
+      // 1. Query parameter: ?apiKey=... or ?api_key=... or ?key=...
+      const queryKey = req.query.apiKey || req.query.api_key || req.query.key;
+      if (queryKey && queryKey === validKey) return next();
+
+      // 2. Authorization Header: Bearer <key>
+      const authHeader = req.headers['authorization'];
+      if (authHeader) {
+        const match = authHeader.match(/^Bearer\s+(.+)$/i);
+        if (match && match[1] === validKey) return next();
+        if (authHeader === validKey) return next();
+      }
+
+      // 3. Custom Header: X-API-Key or X-MCP-Key
+      const xApiKey = req.headers['x-api-key'] || req.headers['x-mcp-key'];
+      if (xApiKey && xApiKey === validKey) return next();
+
+      return res.status(401).json({
+        jsonrpc: '2.0',
+        id: req.body?.id || null,
+        error: {
+          code: -32001,
+          message: 'Unauthorized: Invalid or missing MCP API Key. Provide ?apiKey=... or Authorization: Bearer ...'
+        }
+      });
+    };
+
     // Health & Info Home View
     const handleInfo = (req, res) => {
       const port = this.activePort || this.requestedPort;
       const hostHeader = req.headers.host || `localhost:${port}`;
       const baseUrl = `${req.protocol}://${hostHeader}`;
+      const isAuth = !!config.get('mcpAuthEnabled');
+      const apiKey = config.get('mcpApiKey');
+      const sseUrl = isAuth && apiKey ? `${baseUrl}/sse?apiKey=${apiKey}` : `${baseUrl}/sse`;
 
       if (req.accepts('html') && !req.accepts('json')) {
         return res.send(`
@@ -54,6 +91,7 @@ class McpHttpServer {
               body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; padding: 2rem; max-width: 900px; margin: 0 auto; line-height: 1.6; }
               h1 { color: #818cf8; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 10px; }
               .badge { background: #10b981; color: #fff; padding: 3px 10px; border-radius: 9999px; font-size: 0.8rem; }
+              .badge-auth { background: ${isAuth ? '#f59e0b' : '#64748b'}; color: #fff; padding: 3px 10px; border-radius: 9999px; font-size: 0.8rem; }
               .card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem; }
               code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
               pre { background: #090d16; padding: 1rem; border-radius: 8px; overflow-x: auto; color: #38bdf8; }
@@ -64,7 +102,7 @@ class McpHttpServer {
             </style>
           </head>
           <body>
-            <h1>LocalXWeb MCP Server <span class="badge">RUNNING ON PORT ${port}</span></h1>
+            <h1>LocalXWeb MCP Server <span class="badge">RUNNING ON PORT ${port}</span> <span class="badge-auth">${isAuth ? 'API KEY REQUIRED' : 'OPEN ACCESS'}</span></h1>
             <p style="color: #94a3b8;">Standalone Model Context Protocol (MCP) Server for AI Assistants over Network & HTTP.</p>
 
             <div class="stat-grid">
@@ -84,7 +122,7 @@ class McpHttpServer {
 
             <div class="card">
               <h3>📡 Network Endpoints</h3>
-              <p>• SSE Stream: <code class="endpoint">${baseUrl}/sse</code></p>
+              <p>• SSE Stream: <code class="endpoint">${sseUrl}</code></p>
               <p>• Messages Post: <code class="endpoint">${baseUrl}/messages</code></p>
               <p>• Direct JSON-RPC: <code class="endpoint">${baseUrl}/rpc</code></p>
             </div>
@@ -94,7 +132,7 @@ class McpHttpServer {
               <pre>{
   "mcpServers": {
     "localxweb": {
-      "serverUrl": "${baseUrl}/sse"
+      "serverUrl": "${sseUrl}"${isAuth && apiKey ? `,\n      "headers": {\n        "Authorization": "Bearer ${apiKey}"\n      }` : ''}
     }
   }
 }</pre>
@@ -111,8 +149,9 @@ class McpHttpServer {
         protocolVersion: '2024-11-05',
         port,
         host: this.host,
+        authRequired: isAuth,
         endpoints: {
-          sse: `${baseUrl}/sse`,
+          sse: sseUrl,
           messages: `${baseUrl}/messages`,
           rpc: `${baseUrl}/rpc`,
           info: `${baseUrl}/info`
@@ -140,7 +179,10 @@ class McpHttpServer {
       const sessionId = crypto.randomBytes(16).toString('hex');
       this.sessions.set(sessionId, res);
 
-      const endpointUrl = `/messages?sessionId=${sessionId}`;
+      const isAuth = !!config.get('mcpAuthEnabled');
+      const apiKey = config.get('mcpApiKey');
+      const authQuery = isAuth && apiKey ? `&apiKey=${encodeURIComponent(apiKey)}` : '';
+      const endpointUrl = `/messages?sessionId=${sessionId}${authQuery}`;
       res.write(`event: endpoint\ndata: ${endpointUrl}\n\n`);
 
       const pingInterval = setInterval(() => {
@@ -153,8 +195,8 @@ class McpHttpServer {
       });
     };
 
-    this.app.get('/sse', handleSse);
-    this.app.get('/mcp/sse', handleSse);
+    this.app.get('/sse', verifyMcpAuth, handleSse);
+    this.app.get('/mcp/sse', verifyMcpAuth, handleSse);
 
     // Messages Handlers (/messages and /mcp/messages)
     const handleMessages = async (req, res) => {
@@ -189,8 +231,8 @@ class McpHttpServer {
       }
     };
 
-    this.app.post('/messages', handleMessages);
-    this.app.post('/mcp/messages', handleMessages);
+    this.app.post('/messages', verifyMcpAuth, handleMessages);
+    this.app.post('/mcp/messages', verifyMcpAuth, handleMessages);
 
     // Direct JSON-RPC POST (/rpc and /mcp/rpc)
     const handleRpc = async (req, res) => {
@@ -202,8 +244,8 @@ class McpHttpServer {
       return res.status(204).end();
     };
 
-    this.app.post('/rpc', handleRpc);
-    this.app.post('/mcp/rpc', handleRpc);
+    this.app.post('/rpc', verifyMcpAuth, handleRpc);
+    this.app.post('/mcp/rpc', verifyMcpAuth, handleRpc);
   }
 
   async start() {

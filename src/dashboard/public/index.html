@@ -674,15 +674,31 @@ try {
                 <input type="number" id="setting-pma-port" class="form-input" value="9999">
                 <small>Database web client listener</small>
               </div>
+              <div class="form-group">
+                <label>MCP Network Port</label>
+                <input type="number" id="setting-mcp-port" class="form-input" value="9900">
+                <small>Model Context Protocol standalone port (AI IDEs)</small>
+              </div>
             </div>
 
             <div class="card">
-              <div class="card-title">Security & PHP Engine</div>
+              <div class="card-title">Security & MCP Access</div>
               <div class="form-group">
                 <label>MySQL Root Password</label>
                 <input type="password" id="setting-mysql-password" class="form-input" placeholder="(empty for default dev setup)">
                 <small>Saved in ~/.localxweb/config.json and synced with phpMyAdmin</small>
               </div>
+              <div class="form-group">
+                <label>MCP API Key Authentication</label>
+                <div style="display: flex; align-items: center; gap: 10px; margin-top: 6px;">
+                  <label class="toggle-switch-ui">
+                    <input type="checkbox" id="setting-mcp-auth">
+                    <span class="toggle-slider-ui"></span>
+                  </label>
+                  <span style="font-size: 0.85rem; color: var(--text-muted);">Require API Key for MCP AI Connections</span>
+                </div>
+              </div>
+            </div>
             <div class="card">
               <div class="card-title">System Maintenance & Cleanup</div>
               <p class="subtitle" style="margin-bottom: 14px;">Purge temporary download caches, flushes OPcache buffers, and reset service log files.</p>
@@ -755,6 +771,45 @@ try {
                 <span class="label">Transports</span>
                 <strong style="font-size: 1.05rem; color: #0ea5e9;">Port 9900 & SSE</strong>
                 <small>http://localhost:9900/sse</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- 🔐 MCP API Key & Security Settings Card -->
+          <div class="card mcp-security-card">
+            <div class="mcp-security-header">
+              <div class="mcp-security-info">
+                <div class="card-title" style="margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                  <span>🔐 MCP Server API Key & Authentication</span>
+                  <span id="mcp-auth-badge" class="badge" style="font-size: 0.75rem; background: #64748b; color: #fff; padding: 2px 8px; border-radius: 9999px;">OPEN ACCESS</span>
+                </div>
+                <p class="subtitle" style="margin-bottom: 0;">Require an API Key for incoming MCP client connections (Claude, Cursor, Antigravity, Windsurf) over Port 9900 or SSE.</p>
+              </div>
+              <div class="mcp-security-toggle-container">
+                <label class="toggle-switch-ui" title="Toggle MCP Authentication">
+                  <input type="checkbox" id="mcp-auth-toggle" onchange="toggleMcpAuth(this.checked)">
+                  <span class="toggle-slider-ui"></span>
+                </label>
+                <span id="mcp-auth-status-label" style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); min-width: 65px;">Disabled</span>
+              </div>
+            </div>
+
+            <div id="mcp-key-box" class="mcp-key-box" style="margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-color, #334155);">
+              <label class="form-label" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span style="font-weight: 600; font-size: 0.85rem;">Active MCP API Key:</span>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">Pass via <code>?apiKey=...</code> or <code>Authorization: Bearer ...</code></span>
+              </label>
+              <div class="input-action-group">
+                <input type="password" id="mcp-api-key-input" class="form-input font-mono" readonly value="" placeholder="Generating key..." style="letter-spacing: 1px;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="toggleMcpKeyVisibility()" id="mcp-eye-btn" title="Show / Hide Key">
+                  <span id="mcp-eye-icon">👁️</span>
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="copyMcpApiKey()" title="Copy API Key to Clipboard">
+                  📋 Copy Key
+                </button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="regenerateMcpApiKey()" title="Generate New Key">
+                  🔄 Regenerate
+                </button>
               </div>
             </div>
           </div>

@@ -2056,3 +2056,110 @@ html, body {
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ==========================================================================
+   MCP Security & API Key Styles
+   ========================================================================== */
+.mcp-security-card {
+  margin-bottom: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+}
+
+.mcp-security-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.mcp-security-info {
+  flex: 1;
+  min-width: 250px;
+}
+
+.mcp-security-toggle-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Toggle Switch Component */
+.toggle-switch-ui {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-switch-ui input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider-ui {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--border-strong, #475569);
+  transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 24px;
+}
+
+.toggle-slider-ui:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.toggle-switch-ui input:checked + .toggle-slider-ui {
+  background-color: var(--accent-indigo, #6366f1);
+}
+
+.toggle-switch-ui input:checked + .toggle-slider-ui:before {
+  transform: translateX(20px);
+}
+
+/* Input Action Group (Input with attached action buttons) */
+.input-action-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.input-action-group .form-input {
+  flex: 1;
+  min-width: 220px;
+}
+
+@media (max-width: 600px) {
+  .mcp-security-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .input-action-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .input-action-group button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+

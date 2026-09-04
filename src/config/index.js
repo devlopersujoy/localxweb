@@ -21,13 +21,26 @@ const DEFAULT_CONFIG = {
     version: '8.3'
   },
   autoStart: ['apache', 'mysql'],
-  installDir: platform.servicesDir
+  installDir: platform.servicesDir,
+  mcpPort: 9900,
+  mcpAuthEnabled: false,
+  mcpApiKey: ''
 };
 
 class Config {
   constructor() {
     this.configPath = platform.configFile;
     this._config = null;
+  }
+
+  getMcpApiKey() {
+    this.load();
+    if (!this._config.mcpApiKey) {
+      const crypto = require('crypto');
+      this._config.mcpApiKey = 'lxw_' + crypto.randomBytes(16).toString('hex');
+      this.save();
+    }
+    return this._config.mcpApiKey;
   }
 
   _ensureDir() {

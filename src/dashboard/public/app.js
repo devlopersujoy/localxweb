@@ -1215,6 +1215,8 @@ async function loadSettings() {
     const mysqlInput = document.getElementById('setting-mysql-port');
     const pmaInput = document.getElementById('setting-pma-port');
     const passInput = document.getElementById('setting-mysql-password');
+    const mcpPortInput = document.getElementById('setting-mcp-port');
+    const mcpAuthInput = document.getElementById('setting-mcp-auth');
 
     if (dashInput && cfg.dashboardPort !== undefined) dashInput.value = cfg.dashboardPort;
     if (apacheInput && cfg.apache && cfg.apache.port !== undefined) apacheInput.value = cfg.apache.port;
@@ -1226,6 +1228,8 @@ async function loadSettings() {
     if (passInput && cfg.mysql && cfg.mysql.rootPassword !== undefined) {
       passInput.value = cfg.mysql.rootPassword;
     }
+    if (mcpPortInput && cfg.mcpPort !== undefined) mcpPortInput.value = cfg.mcpPort;
+    if (mcpAuthInput && cfg.mcpAuthEnabled !== undefined) mcpAuthInput.checked = !!cfg.mcpAuthEnabled;
   } catch (err) {
     console.error('Failed to load settings:', err);
   }
@@ -1237,8 +1241,10 @@ async function saveSettings() {
   const mysqlPort = parseInt(document.getElementById('setting-mysql-port').value, 10);
   const pmaPort = parseInt(document.getElementById('setting-pma-port').value, 10);
   const password = document.getElementById('setting-mysql-password').value;
+  const mcpPort = parseInt(document.getElementById('setting-mcp-port')?.value, 10) || 9900;
+  const mcpAuth = !!document.getElementById('setting-mcp-auth')?.checked;
 
-  if (isNaN(dbPort) || isNaN(apachePort) || isNaN(mysqlPort) || isNaN(pmaPort)) {
+  if (isNaN(dbPort) || isNaN(apachePort) || isNaN(mysqlPort) || isNaN(pmaPort) || isNaN(mcpPort)) {
     showToast('Please enter valid numeric port numbers!', true);
     return;
   }
@@ -1253,7 +1259,9 @@ async function saveSettings() {
         dashboardPort: dbPort,
         apache: { port: apachePort },
         mysql: { port: mysqlPort, rootPassword: password },
-        phpmyadminPort: pmaPort
+        phpmyadminPort: pmaPort,
+        mcpPort,
+        mcpAuthEnabled: mcpAuth
       })
     });
 
@@ -1298,15 +1306,24 @@ function showToast(message, isError = false) {
 let mcpState = {
   info: null,
   activeClient: 'claude',
-  allTools: []
+  allTools: [],
+  apiKey: '',
+  authRequired: false
 };
 
 async function loadMcpInfo() {
   try {
-    const res = await fetch('/api/mcp/info');
-    const data = await res.json();
+    const [infoRes, keyRes] = await Promise.all([
+      fetch('/api/mcp/info'),
+      fetch('/api/mcp/api-key')
+    ]);
+    const data = await infoRes.json();
+    const keyData = await keyRes.json();
+
     mcpState.info = data;
     mcpState.allTools = data.tools || [];
+    mcpState.apiKey = keyData.apiKey || data.apiKey || '';
+    mcpState.authRequired = !!keyData.enabled;
 
     const tCount = document.getElementById('mcp-tools-count');
     const rCount = document.getElementById('mcp-resources-count');
@@ -1315,10 +1332,94 @@ async function loadMcpInfo() {
     if (rCount) rCount.textContent = data.resourcesCount;
     if (pCount) pCount.textContent = data.promptsCount;
 
+    // Update Security UI Controls
+    const authToggle = document.getElementById('mcp-auth-toggle');
+    const authLabel = document.getElementById('mcp-auth-status-label');
+    const authBadge = document.getElementById('mcp-auth-badge');
+    const keyInput = document.getElementById('mcp-api-key-input');
+
+    if (authToggle) authToggle.checked = mcpState.authRequired;
+    if (authLabel) authLabel.textContent = mcpState.authRequired ? 'Active ✔' : 'Disabled';
+    if (authBadge) {
+      authBadge.textContent = mcpState.authRequired ? 'API KEY REQUIRED' : 'OPEN ACCESS';
+      authBadge.style.background = mcpState.authRequired ? '#f59e0b' : '#64748b';
+    }
+    if (keyInput) keyInput.value = mcpState.apiKey;
+
     renderMcpSnippet();
     renderMcpTools(mcpState.allTools);
   } catch (err) {
     showToast('Failed to load MCP server info: ' + err.message, true);
+  }
+}
+
+async function toggleMcpAuth(enabled) {
+  try {
+    const res = await fetch('/api/mcp/api-key/toggle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled })
+    });
+    const data = await res.json();
+    mcpState.authRequired = !!data.enabled;
+    if (data.apiKey) mcpState.apiKey = data.apiKey;
+
+    const authLabel = document.getElementById('mcp-auth-status-label');
+    const authBadge = document.getElementById('mcp-auth-badge');
+    if (authLabel) authLabel.textContent = mcpState.authRequired ? 'Active ✔' : 'Disabled';
+    if (authBadge) {
+      authBadge.textContent = mcpState.authRequired ? 'API KEY REQUIRED' : 'OPEN ACCESS';
+      authBadge.style.background = mcpState.authRequired ? '#f59e0b' : '#64748b';
+    }
+
+    showToast(data.message || (enabled ? 'MCP API Key enabled' : 'MCP API Key disabled'));
+    renderMcpSnippet();
+  } catch (err) {
+    showToast('Failed to toggle MCP auth: ' + err.message, true);
+  }
+}
+
+async function regenerateMcpApiKey() {
+  if (!confirm('Are you sure you want to regenerate your MCP API key? Any currently connected AI clients will need the updated key.')) {
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/mcp/api-key/regenerate', { method: 'POST' });
+    const data = await res.json();
+    if (data.success && data.apiKey) {
+      mcpState.apiKey = data.apiKey;
+      const keyInput = document.getElementById('mcp-api-key-input');
+      if (keyInput) keyInput.value = data.apiKey;
+      showToast('New MCP API Key generated successfully! ✔');
+      renderMcpSnippet();
+    }
+  } catch (err) {
+    showToast('Failed to regenerate key: ' + err.message, true);
+  }
+}
+
+function copyMcpApiKey() {
+  const keyInput = document.getElementById('mcp-api-key-input');
+  if (keyInput && keyInput.value) {
+    navigator.clipboard.writeText(keyInput.value);
+    showToast('MCP API Key copied to clipboard! ✔');
+  } else if (mcpState.apiKey) {
+    navigator.clipboard.writeText(mcpState.apiKey);
+    showToast('MCP API Key copied to clipboard! ✔');
+  }
+}
+
+function toggleMcpKeyVisibility() {
+  const keyInput = document.getElementById('mcp-api-key-input');
+  const eyeIcon = document.getElementById('mcp-eye-icon');
+  if (!keyInput) return;
+  if (keyInput.type === 'password') {
+    keyInput.type = 'text';
+    if (eyeIcon) eyeIcon.textContent = '🙈';
+  } else {
+    keyInput.type = 'password';
+    if (eyeIcon) eyeIcon.textContent = '👁️';
   }
 }
 
@@ -1339,11 +1440,23 @@ function renderMcpSnippet() {
   const pathEl = document.getElementById('mcp-target-path');
   const targetPath = mcpState.info.clientPaths ? mcpState.info.clientPaths[client] : '';
 
+  const isAuth = mcpState.authRequired;
+  const key = mcpState.apiKey;
+  const sseUrl = isAuth && key ? `http://localhost:9900/sse?apiKey=${encodeURIComponent(key)}` : `http://localhost:9900/sse`;
+
+  const serverObj = {
+    serverUrl: sseUrl
+  };
+
+  if (isAuth && key) {
+    serverObj.headers = {
+      Authorization: `Bearer ${key}`
+    };
+  }
+
   const configObj = {
     mcpServers: {
-      localxweb: {
-        serverUrl: `http://localhost:9900/sse`
-      }
+      localxweb: serverObj
     }
   };
 

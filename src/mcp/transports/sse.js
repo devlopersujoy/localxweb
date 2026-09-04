@@ -1,6 +1,7 @@
 const express = require('express');
 const crypto = require('crypto');
 const LocalXWebMcpServer = require('../server');
+const config = require('../../config');
 
 function createSseRouter(context = null) {
   const router = express.Router();
@@ -9,10 +10,44 @@ function createSseRouter(context = null) {
   // Active SSE client sessions
   const sessions = new Map();
 
+  // Authentication Verification Middleware
+  const verifyMcpAuth = (req, res, next) => {
+    const isAuthEnabled = !!config.get('mcpAuthEnabled');
+    if (!isAuthEnabled) return next();
+
+    const validKey = config.get('mcpApiKey');
+    if (!validKey) return next();
+
+    // 1. Query parameter
+    const queryKey = req.query.apiKey || req.query.api_key || req.query.key;
+    if (queryKey && queryKey === validKey) return next();
+
+    // 2. Authorization Header
+    const authHeader = req.headers['authorization'];
+    if (authHeader) {
+      const match = authHeader.match(/^Bearer\s+(.+)$/i);
+      if (match && match[1] === validKey) return next();
+      if (authHeader === validKey) return next();
+    }
+
+    // 3. Custom Header
+    const xApiKey = req.headers['x-api-key'] || req.headers['x-mcp-key'];
+    if (xApiKey && xApiKey === validKey) return next();
+
+    return res.status(401).json({
+      jsonrpc: '2.0',
+      id: req.body?.id || null,
+      error: {
+        code: -32001,
+        message: 'Unauthorized: Invalid or missing MCP API Key. Provide ?apiKey=... or Authorization: Bearer ...'
+      }
+    });
+  };
+
   /**
    * GET /mcp/sse - Establish Server-Sent Events stream
    */
-  router.get('/sse', (req, res) => {
+  router.get('/sse', verifyMcpAuth, (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
@@ -23,7 +58,10 @@ function createSseRouter(context = null) {
     sessions.set(sessionId, res);
 
     // Initial endpoint notification per MCP spec
-    const postEndpoint = `/mcp/messages?sessionId=${sessionId}`;
+    const isAuth = !!config.get('mcpAuthEnabled');
+    const apiKey = config.get('mcpApiKey');
+    const authQuery = isAuth && apiKey ? `&apiKey=${encodeURIComponent(apiKey)}` : '';
+    const postEndpoint = `/mcp/messages?sessionId=${sessionId}${authQuery}`;
     res.write(`event: endpoint\ndata: ${postEndpoint}\n\n`);
 
     // Keepalive ping every 25 seconds
@@ -40,7 +78,7 @@ function createSseRouter(context = null) {
   /**
    * POST /mcp/messages - Receive JSON-RPC message from client
    */
-  router.post('/messages', async (req, res) => {
+  router.post('/messages', verifyMcpAuth, async (req, res) => {
     const sessionId = req.query.sessionId;
     const sseClient = sessionId ? sessions.get(sessionId) : null;
     const msg = req.body;
@@ -80,7 +118,7 @@ function createSseRouter(context = null) {
   /**
    * Direct POST /mcp/rpc endpoint for standard HTTP JSON-RPC 2.0 calls
    */
-  router.post('/rpc', async (req, res) => {
+  router.post('/rpc', verifyMcpAuth, async (req, res) => {
     const msg = req.body;
     const resp = await server.handleMessage(msg);
     if (resp) {

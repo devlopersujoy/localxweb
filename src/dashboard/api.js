@@ -445,9 +445,14 @@ router.post('/clean/:target', (req, res) => {
 router.get('/mcp/info', (req, res) => {
   const { LocalXWebMcpServer, getLocalXWebMcpConfig, getClientConfigPaths } = require('../mcp');
   const server = new LocalXWebMcpServer({ services, dbManager, sitesManager });
+  const isAuth = !!config.get('mcpAuthEnabled');
+  const apiKey = config.get('mcpApiKey') || config.getMcpApiKey();
+
   res.json({
-    version: '1.1.0',
+    version: '1.2.0',
     protocolVersion: '2024-11-05',
+    authRequired: isAuth,
+    apiKey: apiKey,
     mcpConfig: getLocalXWebMcpConfig(),
     clientPaths: getClientConfigPaths(),
     toolsCount: server.tools.length,
@@ -456,6 +461,43 @@ router.get('/mcp/info', (req, res) => {
     tools: server.tools.map(t => ({ name: t.name, description: t.description, inputSchema: t.inputSchema })),
     resources: server.resources.map(r => ({ uri: r.uri, name: r.name, description: r.description, mimeType: r.mimeType })),
     prompts: server.prompts.map(p => ({ name: p.name, description: p.description, arguments: p.arguments }))
+  });
+});
+
+// Get MCP API Key Status
+router.get('/mcp/api-key', (req, res) => {
+  const isAuthEnabled = !!config.get('mcpAuthEnabled');
+  const key = config.get('mcpApiKey') || config.getMcpApiKey();
+  res.json({
+    enabled: isAuthEnabled,
+    apiKey: key,
+    maskedKey: key.length > 8 ? key.slice(0, 7) + '...' + key.slice(-4) : '••••••••'
+  });
+});
+
+// Toggle MCP API Key Requirement
+router.post('/mcp/api-key/toggle', (req, res) => {
+  const enabled = !!req.body.enabled;
+  config.set('mcpAuthEnabled', enabled);
+  const key = config.get('mcpApiKey') || config.getMcpApiKey();
+  res.json({
+    success: true,
+    enabled,
+    apiKey: key,
+    message: enabled ? 'MCP API Key authentication enabled' : 'MCP API Key authentication disabled'
+  });
+});
+
+// Regenerate MCP API Key
+router.post('/mcp/api-key/regenerate', (req, res) => {
+  const crypto = require('crypto');
+  const newKey = 'lxw_' + crypto.randomBytes(16).toString('hex');
+  config.set('mcpApiKey', newKey);
+  res.json({
+    success: true,
+    apiKey: newKey,
+    enabled: !!config.get('mcpAuthEnabled'),
+    message: 'New MCP API Key generated successfully'
   });
 });
 
