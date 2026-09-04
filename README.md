@@ -4,7 +4,7 @@
 
 ![LocalXWeb Logo](https://img.shields.io/badge/LocalXWeb-v1.2.0-0ea5e9?style=for-the-badge&logo=apache&logoColor=white)
 [![npm install](https://img.shields.io/badge/npm-npm%20install%20--g%20localxweb-cb3837?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/localxweb)
-[![Feedback](https://img.shields.io/badge/Feedback-DevCrush%20Studio-0284c7?style=for-the-badge&logo=discourse&logoColor=white)](http://feedback.devcrushstudio.worker.dev/)
+[![Feedback](https://img.shields.io/badge/Feedback-DevCrush%20Studio-0284c7?style=for-the-badge&logo=discourse&logoColor=white)](https://feedback.devcrush.worker.dev/)
 [![License: Proprietary](https://img.shields.io/badge/License-Proprietary%20%2F%20EULA-crimson.svg?style=for-the-badge)](LICENSE)
 [![Copyright](https://img.shields.io/badge/Copyright-%C2%A9%202026%20DevCrush%20Studio-blue.svg?style=for-the-badge)](https://github.com/devlopersujoy/localxweb)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux%20%7C%20Termux-blueviolet?style=for-the-badge)](https://github.com/devlopersujoy/localxweb)
@@ -17,7 +17,7 @@
 npm install -g localxweb
 ```
 
-[✨ Features](#-key-features) • [🚀 Quick Start](#-quick-start) • [🖥️ Control Center](#️-apple-style-web-control-center) • [🛠️ CLI Commands](#️-cli-command-reference) • [🤖 MCP AI Integration](#-model-context-protocol-mcp-deep-dive) • [💬 Feedback](http://feedback.devcrushstudio.worker.dev/) • [📄 License](#-license--copyright)
+[✨ Features](#-key-features) • [🚀 Quick Start](#-quick-start) • [🖥️ Control Center](#️-apple-style-web-control-center) • [🛠️ CLI Commands](#️-cli-command-reference) • [🤖 MCP AI Integration](#-model-context-protocol-mcp-deep-dive) • [💬 Feedback](https://feedback.devcrush.worker.dev/) • [📄 License](#-license--copyright)
 
 </div>
 
@@ -551,9 +551,9 @@ We are dedicated to making **LocalXWeb** the most powerful and seamless local de
 
 <div align="center">
 
-[![Feedback Portal](https://img.shields.io/badge/💬%20Submit%20Feedback-DevCrush%20Studio%20Worker-0284c7?style=for-the-badge&logo=discourse&logoColor=white)](http://feedback.devcrushstudio.worker.dev/)
+[![Feedback Portal](https://img.shields.io/badge/💬%20Submit%20Feedback-DevCrush%20Studio%20Worker-0284c7?style=for-the-badge&logo=discourse&logoColor=white)](https://feedback.devcrush.worker.dev/)
 
-### 👉 [http://feedback.devcrushstudio.worker.dev/](http://feedback.devcrushstudio.worker.dev/)
+### 👉 [https://feedback.devcrush.worker.dev/](https://feedback.devcrush.worker.dev/)
 *Share your thoughts, feature requests, or report issues directly to the DevCrush Studio team.*
 
 </div>
