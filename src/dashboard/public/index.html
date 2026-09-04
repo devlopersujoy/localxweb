@@ -99,7 +99,10 @@
         </a>
       </div>
       <div style="padding: 10px 16px; font-size: 0.72rem; color: var(--text-muted); border-top: 1px solid var(--sidebar-border); display: flex; justify-content: space-between; align-items: center;">
-        <span>LocalXWeb v1.2.0</span>
+        <a href="http://feedback.devcrushstudio.worker.dev/" target="_blank" rel="noopener noreferrer" style="color: #38bdf8; text-decoration: none; display: flex; align-items: center; gap: 4px; font-weight: 500;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          Feedback
+        </a>
         <span>© 2026 DevCrush Studio</span>
       </div>
     </aside>
@@ -140,6 +143,12 @@
             <span class="gauge-num font-mono" id="metric-ram">0%</span>
             <div class="gauge-meter"><div id="metric-ram-bar" class="gauge-meter-fill" style="width: 0%"></div></div>
           </div>
+
+          <!-- Feedback Button -->
+          <a href="http://feedback.devcrushstudio.worker.dev/" target="_blank" rel="noopener noreferrer" class="header-feedback-btn" title="Send Feedback to DevCrush Studio">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            <span>Feedback</span>
+          </a>
 
           <!-- Keyboard Shortcuts Button -->
           <button id="shortcuts-btn" class="header-icon-btn" onclick="openModal('modal-shortcuts')" title="Keyboard Shortcuts (?)">
