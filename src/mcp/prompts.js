@@ -3,49 +3,72 @@
  */
 function createMcpPrompts() {
   const prompts = [
-    // 1. Run PHP App & Fullstack Web/Database Orchestrator
+    // 1. Run PHP App in Current Folder / Project Runner (like CLI `localxweb run`)
     {
       name: 'run-php-app',
-      description: 'The complete fullstack workflow for PHP & Web apps: run web apps, auto-create MySQL database, push/import SQL files, edit/query schema, and delete/clean up',
+      description: 'Run the PHP app or web project in the CURRENT FOLDER (or target directory) on a local server, exactly like CLI "localxweb run" (with auto MySQL DB, credentials, and SQL push)',
       arguments: [
         {
+          name: 'directory',
+          description: 'Folder path to run (default: "." - the CURRENT WORKING DIRECTORY you are currently in, exactly like "localxweb run")',
+          required: false
+        },
+        {
           name: 'appName',
-          description: 'Name of the PHP/web application folder in DocumentRoot (e.g. "my-app", "blog", "shop")',
-          required: true
+          description: 'Optional name of the project or app folder',
+          required: false
+        },
+        {
+          name: 'port',
+          description: 'Custom port to serve on (default: 8080 or next free port)',
+          required: false
         },
         {
           name: 'action',
-          description: 'Workflow action: "run" (default), "create-db", "push-sql", "edit-db", "delete-db", "delete-app", "export-db"',
+          description: 'Workflow action: "run" (default: serve current folder), "stop" (stop server), "create-db", "push-sql", "edit-db", "delete-db"',
           required: false
         },
         {
           name: 'databaseName',
-          description: 'Optional custom MySQL database name (defaults to appName)',
+          description: 'Optional MySQL database name (defaults to current folder name)',
           required: false
         },
         {
           name: 'sqlFileOrQuery',
-          description: 'Optional .sql file path to push into DB, or raw SQL query to execute/edit',
+          description: 'Optional .sql file in this folder to push into database, or raw SQL query to execute',
           required: false
         },
         {
           name: 'withDatabase',
-          description: 'Whether the app requires a MySQL database ("true" or "false", default: "true")',
-          required: false
-        },
-        {
-          name: 'template',
-          description: 'Template type if creating new site ("php", "html", "wordpress", "laravel", default: "php")',
+          description: 'Whether the app requires a companion MySQL database ("true" or "false", default: "true")',
           required: false
         }
       ],
       handler: (args) => {
-        const app = args.appName || 'my-app';
+        const dir = args.directory || (args.appName ? args.appName : '.');
         const action = (args.action || 'run').toLowerCase();
         const withDb = args.withDatabase !== 'false';
-        const dbName = (args.databaseName || app).toLowerCase().replace(/[^a-z0-9_]/g, '_');
+        const port = args.port || 8080;
         const sql = args.sqlFileOrQuery;
-        const tpl = args.template || 'php';
+        const app = args.appName || (dir === '.' ? 'current-project' : dir.replace(/^[./\\]+/, ''));
+        const dbName = (args.databaseName || app).toLowerCase().replace(/[^a-z0-9_]/g, '_');
+
+        if (action === 'stop') {
+          return {
+            description: `Stop local project server on port ${port}`,
+            messages: [
+              {
+                role: 'user',
+                content: {
+                  type: 'text',
+                  text: `Please stop the local development server running for "${dir}":
+1. Call \`localxweb_stop_app\` with port=${port}.
+2. Confirm the project runner has been terminated.`
+                }
+              }
+            ]
+          };
+        }
 
         if (action === 'push-sql' || action === 'import-sql') {
           return {
@@ -55,7 +78,7 @@ function createMcpPrompts() {
                 role: 'user',
                 content: {
                   type: 'text',
-                  text: `Please push/import SQL into MySQL database "${dbName}" for app "${app}":
+                  text: `Please push/import SQL into MySQL database "${dbName}" for project in "${dir}":
 1. Verify MySQL is running via \`localxweb_status\`. If stopped, start via \`localxweb_start_service\` (service="mysql").
 2. Ensure database "${dbName}" exists by calling \`localxweb_db_create\` with name="${dbName}".
 3. Push the SQL using \`localxweb_db_import\` with name="${dbName}"${sql ? (sql.endsWith('.sql') ? `, sourceFile="${sql}"` : `, sqlContent="${sql.replace(/"/g, '\\"')}"`) : ''}.
@@ -125,65 +148,31 @@ ${sql ? `4. Import schema/seeds using \`localxweb_db_import\` with name="${dbNam
           };
         }
 
-        if (action === 'delete-app') {
-          return {
-            description: `Delete web app "${app}" and database "${dbName}"`,
-            messages: [
-              {
-                role: 'user',
-                content: {
-                  type: 'text',
-                  text: `Please completely delete web app "${app}":
-1. Delete site folder using \`localxweb_site_delete\` with name="${app}".
-2. Delete companion database using \`localxweb_db_drop\` with name="${dbName}".
-3. Confirm deletion of both web application and database.`
-                }
-              }
-            ]
-          };
-        }
-
-        if (action === 'export-db') {
-          return {
-            description: `Export database "${dbName}" to SQL file`,
-            messages: [
-              {
-                role: 'user',
-                content: {
-                  type: 'text',
-                  text: `Please export database "${dbName}":
-1. Ensure MySQL is running via \`localxweb_status\`.
-2. Call \`localxweb_db_export\` with name="${dbName}".
-3. Provide the full file path and backup size.`
-                }
-              }
-            ]
-          };
-        }
-
-        // Default: Fullstack "run" workflow
+        // Default: Run Current Directory (like CLI `localxweb run`)
         return {
-          description: `Run PHP/Web Application: "${app}"`,
+          description: `Run PHP Project in "${dir}" (like CLI "localxweb run")`,
           messages: [
             {
               role: 'user',
               content: {
                 type: 'text',
-                text: `Please run, configure, and launch the PHP/web application "${app}" in LocalXWeb:
-1. Check stack status via \`localxweb_status\`.
-   - If Apache is stopped, start it via \`localxweb_start_service\` with service="apache".
-   - ${withDb ? 'If MySQL is stopped, start it via \`localxweb_start_service\` with service="mysql".' : ''}
-2. Call \`localxweb_site_list\` to see if "${app}" exists. If not, scaffold it with \`localxweb_site_create\` (name="${app}", template="${tpl}").
-3. ${withDb ? `Ensure database "${dbName}" exists by calling \`localxweb_db_create\` with name="${dbName}". Retrieve credentials with \`localxweb_db_creds\`.` : ''}
-${sql ? `4. Push the provided SQL file/schema into database "${dbName}" using \`localxweb_db_import\` with name="${dbName}" and ${sql.endsWith('.sql') ? `sourceFile="${sql}"` : `sqlContent="${sql.replace(/"/g, '\\"')}"`}.` : ''}
-5. Call \`localxweb_php_info\` to verify key extensions (mysqli, pdo_mysql, curl) are loaded. If any are missing, activate them via \`localxweb_enable_extension\`.
-6. Test the live application endpoint using \`localxweb_test_endpoint\` with path="/${app}/" to verify HTTP 200 OK.
-7. Provide the developer with:
-   - Direct Live URL: \`http://localhost:<apachePort>/${app}/\`
-   - DocumentRoot location on disk
-   ${withDb ? '- Database credentials & ready-to-use .env / PDO config block' : ''}
-   ${sql ? '- Confirmation of imported database tables' : ''}
-   - Quick tips on editing files and extending the application.`
+                text: `Please run the PHP/web application in THIS CURRENT FOLDER (or directory="${dir}") on LocalXWeb, exactly like running "localxweb run" in the CLI:
+1. Call \`localxweb_run_app\` with:
+   - directory: "${dir}" (this serves the current workspace/folder directly)
+   - port: ${port}
+   - withDatabase: ${withDb}
+   - databaseName: "${dbName}"
+   ${sql ? `- sqlFile: "${sql}"` : ''}
+2. The tool will automatically:
+   - Detect project files and start a local development server on \`http://localhost:${port}\`
+   ${withDb ? `- Ensure MySQL is running and auto-create database "${dbName}"` : ''}
+   ${sql ? `- Push SQL schema/file into "${dbName}"` : ''}
+3. Test the live endpoint with \`localxweb_test_endpoint\` (path="http://localhost:${port}/") to verify HTTP 200 OK.
+4. Present the developer with:
+   - ⚡ Live Web URL: \`http://localhost:${port}\`
+   - 📁 Running Directory: "${dir}"
+   ${withDb ? `- 🗄️ Database: \`${dbName}\` and connection credentials (.env / PDO block)` : ''}
+   - 🛑 Instructions to stop runner: call \`localxweb_stop_app\` or \`run-php-app action="stop"\`.`
               }
             }
           ]

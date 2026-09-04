@@ -1,10 +1,14 @@
 const path = require('path');
 const fs = require('fs');
+const { spawn } = require('child_process');
 const platform = require('../utils/platform');
 const config = require('../config');
-const { checkPort } = require('../utils/ports');
+const { checkPort, findFreePort } = require('../utils/ports');
 const AutoFixer = require('../utils/autoFixer');
 const { runDiagnostics } = require('../utils/doctor');
+
+// Active local development server runners (started via localxweb_run_app / CLI run)
+const activeRunners = new Map();
 
 /**
  * Returns all MCP Tool definitions and their execution handlers
@@ -778,6 +782,202 @@ function createMcpTools(context) {
           action: modified ? 'enabled_in_php_ini' : 'already_enabled',
           webServerAction: restartStatus,
           loadedExtensions: php.getLoadedExtensions()
+        };
+      }
+    },
+
+    // 25. Run Local PHP App / Current Folder (like CLI `localxweb run`)
+    {
+      name: 'localxweb_run_app',
+      description: 'Run the PHP app or web project in the CURRENT WORKING DIRECTORY (or specified folder) on a local development server, exactly like CLI "localxweb run"',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          directory: {
+            type: 'string',
+            description: 'Project folder path to serve (default: "." - the current working directory)',
+            default: '.'
+          },
+          port: {
+            type: 'number',
+            description: 'Custom port to serve on (default: 8080 or next free port)'
+          },
+          withDatabase: {
+            type: 'boolean',
+            description: 'Whether to auto-provision a companion MySQL database for this project (default: true)',
+            default: true
+          },
+          databaseName: {
+            type: 'string',
+            description: 'Optional custom database name (defaults to sanitized folder name)'
+          },
+          sqlFile: {
+            type: 'string',
+            description: 'Optional path to .sql file to auto-import into the database'
+          },
+          openBrowser: {
+            type: 'boolean',
+            description: 'Whether to open the browser automatically (default: false)',
+            default: false
+          }
+        }
+      },
+      handler: async ({ directory = '.', port = null, withDatabase = true, databaseName = null, sqlFile = null, openBrowser = false }) => {
+        const targetDir = path.resolve(process.cwd(), directory || '.');
+        if (!fs.existsSync(targetDir)) {
+          throw new Error(`Target directory does not exist: ${targetDir}`);
+        }
+
+        const stat = fs.statSync(targetDir);
+        const docRoot = stat.isDirectory() ? targetDir : path.dirname(targetDir);
+        const projectName = path.basename(docRoot);
+
+        // Check if already running
+        for (const [p, runner] of activeRunners.entries()) {
+          if (runner.docRoot === docRoot) {
+            return {
+              success: true,
+              alreadyRunning: true,
+              url: `http://localhost:${p}`,
+              port: parseInt(p, 10),
+              pid: runner.pid,
+              directory: docRoot,
+              project: projectName,
+              database: runner.dbName,
+              message: `Project "${projectName}" is already running at http://localhost:${p}`
+            };
+          }
+        }
+
+        const targetPort = port ? parseInt(port, 10) : await findFreePort(8080, '127.0.0.1');
+        const phpBin = php ? php.getInstallPath() : null;
+        if (!phpBin) {
+          throw new Error('PHP is not installed. Please install PHP first using "localxweb install php".');
+        }
+
+        php.ensurePhpIni();
+
+        let dbName = null;
+        let dbCreds = null;
+        if (withDatabase) {
+          if (await mysql.status() !== 'running') {
+            await mysql.start().catch(() => {});
+          }
+          dbName = (databaseName || projectName).toLowerCase().replace(/[^a-z0-9_]/g, '_');
+          try {
+            await dbManager.createDatabase(dbName);
+          } catch (_) {}
+
+          if (sqlFile) {
+            const resolvedSql = path.isAbsolute(sqlFile) ? sqlFile : path.resolve(docRoot, sqlFile);
+            if (fs.existsSync(resolvedSql)) {
+              await dbManager.importSql(dbName, resolvedSql);
+            }
+          }
+          dbCreds = dbManager.getCredentials(dbName);
+        }
+
+        const child = spawn(phpBin, [
+          '-c', platform.phpIniFile,
+          '-S', `127.0.0.1:${targetPort}`,
+          '-t', docRoot
+        ], {
+          detached: true,
+          stdio: 'ignore'
+        });
+        child.unref();
+
+        activeRunners.set(String(targetPort), {
+          pid: child.pid,
+          child,
+          port: targetPort,
+          docRoot,
+          projectName,
+          dbName,
+          startedAt: new Date().toISOString()
+        });
+
+        if (openBrowser) {
+          const openCmd = platform.isWindows ? `start http://localhost:${targetPort}` : platform.isMac ? `open http://localhost:${targetPort}` : `xdg-open http://localhost:${targetPort}`;
+          try { require('child_process').execSync(openCmd); } catch (_) {}
+        }
+
+        return {
+          success: true,
+          url: `http://localhost:${targetPort}`,
+          port: targetPort,
+          project: projectName,
+          directory: docRoot,
+          pid: child.pid,
+          database: dbName,
+          dbCredentials: dbCreds,
+          message: `Project "${projectName}" is now running at http://localhost:${targetPort} (serving current folder, just like CLI "localxweb run")`
+        };
+      }
+    },
+
+    // 26. Stop Running Local PHP App
+    {
+      name: 'localxweb_stop_app',
+      description: 'Stop a running local development server started by localxweb_run_app',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          port: {
+            type: 'number',
+            description: 'Port of the app to stop (or omit to stop all running development servers)'
+          }
+        }
+      },
+      handler: async ({ port = null }) => {
+        if (port) {
+          const pStr = String(port);
+          if (activeRunners.has(pStr)) {
+            const runner = activeRunners.get(pStr);
+            try { process.kill(runner.pid); } catch (_) {}
+            activeRunners.delete(pStr);
+            return { success: true, message: `Stopped project on port ${port}` };
+          }
+          return { success: false, message: `No active project runner found on port ${port}` };
+        }
+
+        const stopped = [];
+        for (const [pStr, runner] of activeRunners.entries()) {
+          try { process.kill(runner.pid); } catch (_) {}
+          stopped.push(pStr);
+        }
+        activeRunners.clear();
+        return {
+          success: true,
+          message: stopped.length > 0 ? `Stopped all running projects on ports: ${stopped.join(', ')}` : 'No active project servers were running'
+        };
+      }
+    },
+
+    // 27. List Running Local Apps
+    {
+      name: 'localxweb_list_running_apps',
+      description: 'List all currently running local development servers and their URLs/ports',
+      inputSchema: {
+        type: 'object',
+        properties: {}
+      },
+      handler: async () => {
+        const list = [];
+        for (const [pStr, runner] of activeRunners.entries()) {
+          list.push({
+            port: parseInt(pStr, 10),
+            pid: runner.pid,
+            url: `http://localhost:${pStr}`,
+            directory: runner.docRoot,
+            project: runner.projectName,
+            database: runner.dbName,
+            startedAt: runner.startedAt
+          });
+        }
+        return {
+          total: list.length,
+          runningApps: list
         };
       }
     }
