@@ -3,12 +3,17 @@
 <div align="center">
 
 ![LocalXWeb Logo](https://img.shields.io/badge/LocalXWeb-v1.2.0-0ea5e9?style=for-the-badge&logo=apache&logoColor=white)
+[![npm install](https://img.shields.io/badge/npm-npm%20install%20--g%20localxweb-cb3837?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/localxweb)
 [![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg?style=for-the-badge)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux%20%7C%20Termux-blueviolet?style=for-the-badge)](https://github.com/devlopersujoy/localxweb)
 [![MCP Supported](https://img.shields.io/badge/MCP-27%20Tools%20%7C%2014%20Prompts%20%7C%20SSE%20%26%20Stdio-amber?style=for-the-badge)](https://modelcontextprotocol.io)
 
 ### **The Next-Generation Local Development Server & AI-Native Stack**
 *A modern, lightning-fast, self-contained alternative to XAMPP, WampServer, and MAMP for Windows, macOS, Linux, and Android (Termux).*
+
+```bash
+npm install -g localxweb
+```
 
 [✨ Features](#-key-features) • [🚀 Quick Start](#-quick-start) • [🖥️ Control Center](#️-apple-style-web-control-center) • [🛠️ CLI Commands](#️-cli-command-reference) • [🤖 MCP AI Integration](#-model-context-protocol-mcp-deep-dive) • [🗄️ Database Architecture](#️-database-architecture--offline-resilience) • [📁 Project Runner](#-instant-project-server-runner) • [📄 License](#-license)
 
@@ -104,21 +109,26 @@ flowchart TD
 
 ## 📦 Quick Start
 
-### 1. Installation
+### 1. Global Installation (Recommended)
 
-Install globally via npm or clone the repository:
+Install LocalXWeb globally with a single command:
 
 ```bash
-# Clone the repository
+npm install -g localxweb
+```
+
+> **⚡ Global Access**: Once installed, the `localxweb` command is instantly accessible across your entire system in any terminal, Command Prompt, PowerShell, or shell.
+
+<details>
+<summary><b>🛠️ Alternative: Install from Source (Git Clone)</b></summary>
+
+```bash
 git clone https://github.com/devlopersujoy/localxweb.git
 cd localxweb
-
-# Install dependencies
 npm install
-
-# Link globally so "localxweb" is available anywhere
 npm link
 ```
+</details>
 
 ### 2. Start the Stack
 
