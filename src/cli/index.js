@@ -742,6 +742,68 @@ program
   .description('Alias for "autofix"')
   .action(handleAutoFix);
 
+// Model Context Protocol (MCP) Server Commands
+const mcpCmd = program
+  .command('mcp')
+  .description('Model Context Protocol (MCP) Server for AI Assistants (Claude Desktop, Cursor, Antigravity, Windsurf)');
+
+mcpCmd
+  .command('start', { isDefault: true })
+  .description('Launch LocalXWeb MCP Server over stdio')
+  .action(() => {
+    const { startStdioServer } = require('../mcp');
+    startStdioServer();
+  });
+
+mcpCmd
+  .command('install [client]')
+  .description('Auto-install LocalXWeb MCP configuration in Claude Desktop, Cursor, Antigravity, or Windsurf')
+  .action((client) => {
+    const { installMcpConfig, getLocalXWebMcpConfig } = require('../mcp');
+    logger.banner();
+    console.log(chalk.bold('\n  LocalXWeb MCP Auto-Installer\n'));
+    const results = installMcpConfig(client || 'all');
+    for (const res of results) {
+      if (res.success) {
+        console.log(`  ${chalk.green('✔')} ${chalk.bold(res.client.toUpperCase())}: Configured at ${chalk.gray(res.path)}`);
+      } else {
+        console.log(`  ${chalk.yellow('ℹ')} ${chalk.bold(res.client.toUpperCase())}: Skipped (${res.error})`);
+      }
+    }
+    console.log(chalk.bold('\n  Stdio Configuration Snippet:\n'));
+    console.log(chalk.cyan(JSON.stringify({ localxweb: getLocalXWebMcpConfig() }, null, 2)));
+    console.log('\n  Restart your AI client to access all 22 LocalXWeb tools!\n');
+  });
+
+mcpCmd
+  .command('list')
+  .description('List all available MCP tools, resources, and prompts')
+  .action(() => {
+    const { LocalXWebMcpServer } = require('../mcp');
+    const server = new LocalXWebMcpServer();
+    logger.banner();
+    console.log(chalk.bold('\n  LocalXWeb MCP Server Capabilities:\n'));
+    console.log(`  ● Registered Tools:     ${chalk.cyan(server.tools.length)}`);
+    console.log(`  ● Registered Resources: ${chalk.cyan(server.resources.length)}`);
+    console.log(`  ● Registered Prompts:   ${chalk.cyan(server.prompts.length)}\n`);
+
+    console.log(chalk.bold.underline('  Tools (Executable by AI Models):'));
+    for (const t of server.tools) {
+      console.log(`    ${chalk.green('⚡ ' + t.name.padEnd(26))} ${chalk.gray(t.description)}`);
+    }
+
+    console.log(chalk.bold.underline('\n  Resources (Readable by AI Models):'));
+    for (const r of server.resources) {
+      console.log(`    ${chalk.blue('📄 ' + r.uri.padEnd(26))} ${chalk.gray(r.name)}`);
+    }
+
+    console.log(chalk.bold.underline('\n  Prompts (AI Workflows):'));
+    for (const p of server.prompts) {
+      console.log(`    ${chalk.yellow('💡 ' + p.name.padEnd(26))} ${chalk.gray(p.description)}`);
+    }
+    console.log('');
+  });
+
 async function startAll() {
   const spinner = ora('Starting Web Server (Apache/PHP)...').start();
   try {

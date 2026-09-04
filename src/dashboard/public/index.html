@@ -69,6 +69,11 @@
             <span>Documentation</span>
             <span class="badge-count" style="background: rgba(99, 102, 241, 0.15); color: var(--accent-primary);">DOCS</span>
           </li>
+          <li class="nav-item" data-page="mcp">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14.5h-2v-2h2zm0-4h-2V7h2z"/></svg>
+            <span>MCP & AI Agent</span>
+            <span class="badge-count" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">AI</span>
+          </li>
           <li class="nav-item" data-page="settings">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
             <span>Preferences</span>
@@ -699,7 +704,104 @@ try {
           </div>
         </section>
 
-        <!-- 8. 404 NOT FOUND VIEW -->
+        <!-- 8. MCP & AI AGENT INTEGRATION VIEW -->
+        <section id="page-mcp" class="page-view">
+          <div class="view-header-bar">
+            <div>
+              <h2>Model Context Protocol (MCP) Server</h2>
+              <p class="subtitle">Connect Claude Desktop, Cursor, Antigravity, and Windsurf directly to LocalXWeb AI tools</p>
+            </div>
+            <div class="header-actions">
+              <span class="badge badge-success" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; display: inline-flex; align-items: center;">
+                <span class="status-jewel-dot online" style="display:inline-block; margin-right: 6px;"></span>
+                MCP Engine Online
+              </span>
+              <button class="btn btn-primary" onclick="autoInstallMcpGui()">
+                ⚡ Auto-Install to AI Clients
+              </button>
+            </div>
+          </div>
+
+          <!-- MCP Status Stats Grid -->
+          <div class="doctor-summary-cards" style="margin-bottom: 1.5rem;">
+            <div class="doc-card">
+              <div class="doc-card-icon" style="background: rgba(99, 102, 241, 0.15); color: #6366f1;">⚡</div>
+              <div class="doc-card-data">
+                <span class="label">Registered Tools</span>
+                <strong id="mcp-tools-count">22</strong>
+                <small style="color: var(--text-muted);">Stack, DB, Sites, Doctor, Config</small>
+              </div>
+            </div>
+            <div class="doc-card">
+              <div class="doc-card-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">📄</div>
+              <div class="doc-card-data">
+                <span class="label">Live Resources</span>
+                <strong id="mcp-resources-count">10</strong>
+                <small style="color: var(--text-muted);">Status, Config, DB, Logs, Ports</small>
+              </div>
+            </div>
+            <div class="doc-card">
+              <div class="doc-card-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">💡</div>
+              <div class="doc-card-data">
+                <span class="label">AI Prompts</span>
+                <strong id="mcp-prompts-count">3</strong>
+                <small style="color: var(--text-muted);">Diagnose, Setup DB, Scaffold</small>
+              </div>
+            </div>
+            <div class="doc-card">
+              <div class="doc-card-icon" style="background: rgba(14, 165, 233, 0.15); color: #0ea5e9;">🌐</div>
+              <div class="doc-card-data">
+                <span class="label">Transports</span>
+                <strong style="font-size: 1.1rem; color: #0ea5e9;">Stdio & SSE</strong>
+                <small style="color: var(--text-muted);">Port 99 (/mcp/sse) & CLI</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- 1-Click Client Configuration Blocks -->
+          <div class="settings-card" style="margin-bottom: 1.5rem;">
+            <div class="settings-card-header">
+              <h4>🚀 AI Assistant Setup & Configuration</h4>
+              <p>Add LocalXWeb to your favorite AI coding assistant in 1 second. Copy the JSON snippet or use the Auto-Installer button.</p>
+            </div>
+            <div class="settings-card-body">
+              <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;" id="mcp-tabs-header">
+                <button class="btn btn-sm btn-primary mcp-tab-btn" onclick="switchMcpTab('claude')">Claude Desktop</button>
+                <button class="btn btn-sm btn-secondary mcp-tab-btn" onclick="switchMcpTab('antigravity')">Antigravity</button>
+                <button class="btn btn-sm btn-secondary mcp-tab-btn" onclick="switchMcpTab('cursor')">Cursor</button>
+                <button class="btn btn-sm btn-secondary mcp-tab-btn" onclick="switchMcpTab('windsurf')">Windsurf</button>
+              </div>
+
+              <div id="mcp-snippet-wrap" style="position: relative;">
+                <pre id="mcp-config-snippet" class="code-block-preview font-mono" style="background: var(--bg-surface-2); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color); max-height: 240px; overflow-y: auto; color: var(--text-main); font-size: 0.85rem;"></pre>
+                <button class="btn btn-sm btn-secondary" onclick="copyMcpSnippet()" style="position: absolute; top: 10px; right: 10px;">
+                  📋 Copy JSON
+                </button>
+              </div>
+              <small id="mcp-target-path" style="display: block; margin-top: 0.5rem; color: var(--text-muted);"></small>
+            </div>
+          </div>
+
+          <!-- Interactive MCP Tools Directory -->
+          <div class="settings-card">
+            <div class="settings-card-header">
+              <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 10px;">
+                <div>
+                  <h4>🛠️ Available MCP Tools for AI Models</h4>
+                  <p>AI assistants can autonomously execute these 22 actions on your local server.</p>
+                </div>
+                <input type="text" id="mcp-tool-filter" placeholder="Search tools..." oninput="filterMcpTools()" class="form-input" style="max-width: 250px; padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+              </div>
+            </div>
+            <div class="settings-card-body">
+              <div id="mcp-tools-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem;">
+                <!-- Dynamically populated by app.js -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 9. 404 NOT FOUND VIEW -->
         <section id="page-404" class="page-view">
           <div class="error-404-container">
             <div class="error-badge-glow">

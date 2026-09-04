@@ -275,6 +275,19 @@ class DatabaseManager {
     }
   }
 
+  async executeQuery(sql, database = null) {
+    let conn;
+    try {
+      conn = await this._getConnection(database);
+      const [results] = await conn.query(sql);
+      return { success: true, results };
+    } catch (e) {
+      return { success: false, error: e.message };
+    } finally {
+      if (conn) await conn.end();
+    }
+  }
+
   async exportSql(dbName, destFile) {
     const dumpTool = this.mysqlService.getDumpClientPath();
     const mysqlCfg = config.get('mysql') || {};

@@ -10,6 +10,10 @@ function startDashboard(port) {
 
   app.use('/api', apiRouter);
 
+  // Mount Model Context Protocol (MCP) Router (SSE & HTTP)
+  const { createSseRouter } = require('../mcp');
+  app.use('/mcp', createSseRouter());
+
   // Fallback 404 for unknown API endpoints
   app.all('/api/*', (req, res) => {
     res.status(404).json({ error: 'API route not found', path: req.path });

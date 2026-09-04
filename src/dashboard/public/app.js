@@ -23,6 +23,7 @@ const ROUTE_MAP = {
   doctor: '/doctor',
   logs: '/logs',
   docs: '/docs',
+  mcp: '/mcp',
   settings: '/settings',
   '404': '/404'
 };
@@ -58,6 +59,7 @@ function resolveRouteFromPath() {
   if (p === '/doctor' || p === '/diagnostics') return 'doctor';
   if (p === '/logs') return 'logs';
   if (p === '/docs' || p === '/documentation') return 'docs';
+  if (p === '/mcp' || p === '/ai') return 'mcp';
   if (p === '/settings' || p === '/preferences') return 'settings';
   if (p === '/404') return '404';
   return '404';
@@ -159,6 +161,7 @@ function navigateTo(pageId, push = true) {
     doctor: 'System Doctor',
     logs: 'Console Logs',
     docs: 'Documentation & Guides',
+    mcp: 'Model Context Protocol (MCP) & AI Assistant',
     settings: 'Preferences',
     '404': '404 Page Not Found'
   };
@@ -176,6 +179,7 @@ function navigateTo(pageId, push = true) {
   if (pageId === 'databases') loadDatabases();
   if (pageId === 'doctor') runDoctor();
   if (pageId === 'logs') loadLogs();
+  if (pageId === 'mcp') loadMcpInfo();
   if (pageId === 'settings') loadSettings();
 }
 
@@ -1286,4 +1290,128 @@ function showToast(message, isError = false) {
   toast._timer = setTimeout(() => {
     toast.classList.add('hidden');
   }, 3200);
+}
+
+// ==========================================================================
+// Model Context Protocol (MCP) Server Integration
+// ==========================================================================
+let mcpState = {
+  info: null,
+  activeClient: 'claude',
+  allTools: []
+};
+
+async function loadMcpInfo() {
+  try {
+    const res = await fetch('/api/mcp/info');
+    const data = await res.json();
+    mcpState.info = data;
+    mcpState.allTools = data.tools || [];
+
+    const tCount = document.getElementById('mcp-tools-count');
+    const rCount = document.getElementById('mcp-resources-count');
+    const pCount = document.getElementById('mcp-prompts-count');
+    if (tCount) tCount.textContent = data.toolsCount;
+    if (rCount) rCount.textContent = data.resourcesCount;
+    if (pCount) pCount.textContent = data.promptsCount;
+
+    renderMcpSnippet();
+    renderMcpTools(mcpState.allTools);
+  } catch (err) {
+    showToast('Failed to load MCP server info: ' + err.message, true);
+  }
+}
+
+function switchMcpTab(client) {
+  mcpState.activeClient = client;
+  document.querySelectorAll('.mcp-tab-btn').forEach(btn => {
+    btn.classList.remove('btn-primary');
+    btn.classList.add('btn-secondary');
+  });
+  if (window.event && window.event.target) {
+    window.event.target.classList.remove('btn-secondary');
+    window.event.target.classList.add('btn-primary');
+  }
+  renderMcpSnippet();
+}
+
+function renderMcpSnippet() {
+  if (!mcpState.info) return;
+  const client = mcpState.activeClient || 'claude';
+  const snippetEl = document.getElementById('mcp-config-snippet');
+  const pathEl = document.getElementById('mcp-target-path');
+  const targetPath = mcpState.info.clientPaths ? mcpState.info.clientPaths[client] : '';
+
+  const configObj = {
+    mcpServers: {
+      localxweb: mcpState.info.mcpConfig
+    }
+  };
+
+  if (snippetEl) snippetEl.textContent = JSON.stringify(configObj, null, 2);
+  if (pathEl) pathEl.innerHTML = `Configuration File: <code class="code-pill">${targetPath || 'Auto-detected'}</code>`;
+}
+
+function copyMcpSnippet() {
+  const snippetEl = document.getElementById('mcp-config-snippet');
+  if (snippetEl) {
+    navigator.clipboard.writeText(snippetEl.textContent);
+    showToast('MCP configuration JSON copied to clipboard! ✔');
+  }
+}
+
+async function autoInstallMcpGui() {
+  try {
+    showToast('Auto-installing LocalXWeb MCP configuration...');
+    const res = await fetch('/api/mcp/install', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ client: 'all' })
+    });
+    const data = await res.json();
+    if (data.success) {
+      const okClients = (data.results || []).filter(r => r.success).map(r => r.client.toUpperCase());
+      showToast(`Installed MCP in: ${okClients.join(', ')}! Restart your AI client. ✔`);
+    } else {
+      showToast('Installation failed: ' + (data.error || 'Unknown error'), true);
+    }
+  } catch (err) {
+    showToast('Auto-install error: ' + err.message, true);
+  }
+}
+
+function filterMcpTools() {
+  const q = (document.getElementById('mcp-tool-filter')?.value || '').toLowerCase();
+  if (!q) {
+    renderMcpTools(mcpState.allTools);
+    return;
+  }
+  const filtered = mcpState.allTools.filter(t => t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q));
+  renderMcpTools(filtered);
+}
+
+function renderMcpTools(tools) {
+  const grid = document.getElementById('mcp-tools-grid');
+  if (!grid) return;
+  if (!tools || tools.length === 0) {
+    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">No matching MCP tools found.</div>';
+    return;
+  }
+
+  grid.innerHTML = tools.map(t => `
+    <div style="background: var(--bg-surface-2); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+          <strong style="color: #6366f1; font-family: monospace; font-size: 0.95rem;">⚡ ${t.name}</strong>
+          <span class="badge badge-success" style="font-size: 0.75rem;">TOOL</span>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.8rem;">${t.description}</p>
+      </div>
+      <div style="background: var(--bg-surface-1); border-radius: 6px; padding: 0.5rem; font-size: 0.75rem; color: var(--text-secondary); font-family: monospace; overflow-x: auto;">
+        ${t.inputSchema?.properties && Object.keys(t.inputSchema.properties).length > 0
+          ? 'Params: ' + Object.keys(t.inputSchema.properties).join(', ')
+          : 'Params: None (Zero-arg)'}
+      </div>
+    </div>
+  `).join('');
 }

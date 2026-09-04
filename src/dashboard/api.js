@@ -413,4 +413,29 @@ router.post('/clean/:target', (req, res) => {
   }
 });
 
+// MCP API Endpoints for Dashboard Integration
+router.get('/mcp/info', (req, res) => {
+  const { LocalXWebMcpServer, getLocalXWebMcpConfig, getClientConfigPaths } = require('../mcp');
+  const server = new LocalXWebMcpServer({ services, dbManager, sitesManager });
+  res.json({
+    version: '1.1.0',
+    protocolVersion: '2024-11-05',
+    mcpConfig: getLocalXWebMcpConfig(),
+    clientPaths: getClientConfigPaths(),
+    toolsCount: server.tools.length,
+    resourcesCount: server.resources.length,
+    promptsCount: server.prompts.length,
+    tools: server.tools.map(t => ({ name: t.name, description: t.description, inputSchema: t.inputSchema })),
+    resources: server.resources.map(r => ({ uri: r.uri, name: r.name, description: r.description, mimeType: r.mimeType })),
+    prompts: server.prompts.map(p => ({ name: p.name, description: p.description, arguments: p.arguments }))
+  });
+});
+
+router.post('/mcp/install', (req, res) => {
+  const { installMcpConfig } = require('../mcp');
+  const client = req.body.client || 'all';
+  const results = installMcpConfig(client);
+  res.json({ success: true, results });
+});
+
 module.exports = router;
