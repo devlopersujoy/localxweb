@@ -1325,13 +1325,10 @@ async function loadMcpInfo() {
 function switchMcpTab(client) {
   mcpState.activeClient = client;
   document.querySelectorAll('.mcp-tab-btn').forEach(btn => {
-    btn.classList.remove('btn-primary');
-    btn.classList.add('btn-secondary');
+    btn.classList.remove('active');
   });
-  if (window.event && window.event.target) {
-    window.event.target.classList.remove('btn-secondary');
-    window.event.target.classList.add('btn-primary');
-  }
+  const currentBtn = Array.from(document.querySelectorAll('.mcp-tab-btn')).find(b => b.getAttribute('onclick')?.includes(`'${client}'`));
+  if (currentBtn) currentBtn.classList.add('active');
   renderMcpSnippet();
 }
 
@@ -1351,7 +1348,7 @@ function renderMcpSnippet() {
   };
 
   if (snippetEl) snippetEl.textContent = JSON.stringify(configObj, null, 2);
-  if (pathEl) pathEl.innerHTML = `Configuration File: <code class="code-pill">${targetPath || 'Auto-detected'}</code> · Network Port: <strong style="color: #6366f1;">9900</strong>`;
+  if (pathEl) pathEl.textContent = targetPath ? `(${targetPath})` : '(Auto-detected)';
 }
 
 function copyMcpSnippet() {
@@ -1401,18 +1398,18 @@ function renderMcpTools(tools) {
   }
 
   grid.innerHTML = tools.map(t => `
-    <div style="background: var(--bg-surface-2); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; display: flex; flex-direction: column; justify-content: space-between;">
+    <div class="mcp-tool-card">
       <div>
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
-          <strong style="color: #6366f1; font-family: monospace; font-size: 0.95rem;">⚡ ${t.name}</strong>
-          <span class="badge badge-success" style="font-size: 0.75rem;">TOOL</span>
+        <div class="mcp-tool-top">
+          <span class="mcp-tool-name">⚡ ${t.name}</span>
+          <span class="mcp-tool-badge">TOOL</span>
         </div>
-        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.8rem;">${t.description}</p>
+        <p class="mcp-tool-desc">${t.description}</p>
       </div>
-      <div style="background: var(--bg-surface-1); border-radius: 6px; padding: 0.5rem; font-size: 0.75rem; color: var(--text-secondary); font-family: monospace; overflow-x: auto;">
+      <div class="mcp-tool-params font-mono">
         ${t.inputSchema?.properties && Object.keys(t.inputSchema.properties).length > 0
-          ? 'Params: ' + Object.keys(t.inputSchema.properties).join(', ')
-          : 'Params: None (Zero-arg)'}
+          ? '⚙ ' + Object.keys(t.inputSchema.properties).map(p => `<span style="color: var(--accent-primary); font-weight: bold;">${p}</span>`).join(', ')
+          : '⚙ None (Zero-arg)'}
       </div>
     </div>
   `).join('');

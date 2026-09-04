@@ -367,8 +367,12 @@ function createMcpTools(context) {
         required: ['name']
       },
       handler: async ({ name, destinationFile }) => {
+        if (!name) throw new Error('Parameter "name" (database name to export) is required.');
         const dest = destinationFile || path.join(platform.localxwebDir, `${name}_backup.sql`);
-        await dbManager.exportSql(name, dest);
+        const ok = await dbManager.exportSql(name, dest);
+        if (!ok) {
+          throw new Error(`Failed to export database "${name}". Please verify the database exists and MySQL is running.`);
+        }
         return {
           success: true,
           database: name,
@@ -397,6 +401,11 @@ function createMcpTools(context) {
         required: ['name', 'sourceFile']
       },
       handler: async ({ name, sourceFile }) => {
+        if (!name) throw new Error('Parameter "name" (target database) is required.');
+        if (!sourceFile) throw new Error('Parameter "sourceFile" (.sql path) is required.');
+        if (!fs.existsSync(sourceFile)) {
+          throw new Error(`SQL file "${sourceFile}" does not exist.`);
+        }
         await dbManager.importSql(name, sourceFile);
         return {
           success: true,
