@@ -49,12 +49,25 @@ program
     }
     startDashboard(port);
 
+    // Start Standalone MCP Network Port Server (default port 9900)
+    const { McpHttpServer } = require('../mcp');
+    const mcpHttpServer = new McpHttpServer({ port: config.get('mcpPort') || 9900 });
+    let mcpInfo = null;
+    try {
+      mcpInfo = await mcpHttpServer.start();
+    } catch (mcpErr) {
+      logger.warn(`MCP Server port notice: ${mcpErr.message}`);
+    }
+
     const apachePort = apache.port || config.get('apache')?.port || 80;
     const mysqlPort = mysql.port || config.get('mysql')?.port || 3306;
     const pmaPort = phpmyadmin.port || config.get('phpmyadminPort') || 9999;
 
     console.log(chalk.bold.green('\n  ✔ LocalXWeb Stack is Online!\n'));
     console.log(`  ${chalk.bold('Dashboard:')}   ${chalk.cyan(`http://localhost:${port}`)}`);
+    if (mcpInfo) {
+      console.log(`  ${chalk.bold('MCP Server:')}  ${chalk.cyan(mcpInfo.sseUrl)} ${chalk.gray(`(Port ${mcpInfo.port})`)}`);
+    }
     console.log(`  ${chalk.bold('Web Server:')}  ${chalk.cyan(`http://localhost:${apachePort}`)}`);
     console.log(`  ${chalk.bold('MySQL/MariaDB:')} ${chalk.cyan(`127.0.0.1:${mysqlPort}`)}`);
     console.log(`  ${chalk.bold('phpMyAdmin:')}  ${chalk.cyan(`http://localhost:${pmaPort}`)}`);
@@ -64,6 +77,9 @@ program
 
     process.on('SIGINT', async () => {
       logger.info('\nStopping all services...');
+      if (mcpHttpServer) {
+        try { await mcpHttpServer.stop(); } catch {}
+      }
       await stopAll();
       process.exit(0);
     });
@@ -745,11 +761,69 @@ program
 // Model Context Protocol (MCP) Server Commands
 const mcpCmd = program
   .command('mcp')
-  .description('Model Context Protocol (MCP) Server for AI Assistants (Claude Desktop, Cursor, Antigravity, Windsurf)');
+  .description('Model Context Protocol (MCP) Server for AI Assistants (Runs on Network Port & HTTP/SSE)')
+  .option('-p, --port <number>', 'Port for MCP HTTP/SSE server (default: 9900)', 9900)
+  .option('-h, --host <string>', 'Host to bind (default: 0.0.0.0)', '0.0.0.0')
+  .action(async (options) => {
+    const { McpHttpServer } = require('../mcp');
+    logger.banner();
+    const port = parseInt(options.port, 10) || 9900;
+    const server = new McpHttpServer({ port, host: options.host });
+    try {
+      const info = await server.start();
+      console.log(chalk.bold.green(`\n  ✔ LocalXWeb Standalone MCP Server is Live on Port ${info.port}!\n`));
+      console.log(`  ● SSE Stream:         ${chalk.cyan(info.sseUrl)}`);
+      console.log(`  ● Messages Endpoint:  ${chalk.cyan(info.url + '/messages')}`);
+      console.log(`  ● Direct RPC:         ${chalk.cyan(info.rpcUrl)}`);
+      console.log(`  ● Health & Info:      ${chalk.cyan(info.url)}`);
+      console.log(`  ● Bound Host:         ${chalk.yellow(info.host)} (All interfaces / LAN / Remote)\n`);
+      console.log(chalk.bold('  Connect your AI Assistant (Claude, Cursor, Antigravity, Windsurf):'));
+      console.log(chalk.gray(`  Add { "mcpServers": { "localxweb": { "serverUrl": "${info.sseUrl}" } } }\n`));
+      console.log(chalk.gray('  Press Ctrl+C to stop MCP server'));
+
+      process.on('SIGINT', async () => {
+        console.log('\nStopping MCP server...');
+        await server.stop();
+        process.exit(0);
+      });
+    } catch (err) {
+      console.error(chalk.red(`Failed to start MCP server: ${err.message}`));
+      process.exit(1);
+    }
+  });
 
 mcpCmd
-  .command('start', { isDefault: true })
-  .description('Launch LocalXWeb MCP Server over stdio')
+  .command('serve')
+  .description('Launch MCP HTTP/SSE server on a network port')
+  .option('-p, --port <number>', 'Port for MCP HTTP/SSE server (default: 9900)', 9900)
+  .option('-h, --host <string>', 'Host to bind (default: 0.0.0.0)', '0.0.0.0')
+  .action(async (options) => {
+    const { McpHttpServer } = require('../mcp');
+    logger.banner();
+    const port = parseInt(options.port, 10) || 9900;
+    const server = new McpHttpServer({ port, host: options.host });
+    try {
+      const info = await server.start();
+      console.log(chalk.bold.green(`\n  ✔ LocalXWeb Standalone MCP Server is Live on Port ${info.port}!\n`));
+      console.log(`  ● SSE Stream:         ${chalk.cyan(info.sseUrl)}`);
+      console.log(`  ● Direct RPC:         ${chalk.cyan(info.rpcUrl)}`);
+      console.log(`  ● Bound Host:         ${chalk.yellow(info.host)}\n`);
+      console.log(chalk.gray('  Press Ctrl+C to stop MCP server'));
+
+      process.on('SIGINT', async () => {
+        console.log('\nStopping MCP server...');
+        await server.stop();
+        process.exit(0);
+      });
+    } catch (err) {
+      console.error(chalk.red(`Failed to start MCP server: ${err.message}`));
+      process.exit(1);
+    }
+  });
+
+mcpCmd
+  .command('stdio')
+  .description('Launch LocalXWeb MCP Server over stdio pipe (for CLI piping)')
   .action(() => {
     const { startStdioServer } = require('../mcp');
     startStdioServer();
@@ -758,11 +832,15 @@ mcpCmd
 mcpCmd
   .command('install [client]')
   .description('Auto-install LocalXWeb MCP configuration in Claude Desktop, Cursor, Antigravity, or Windsurf')
-  .action((client) => {
+  .option('--stdio', 'Use stdio transport instead of network port')
+  .option('-p, --port <number>', 'Port for SSE server (default: 9900)', 9900)
+  .action((client, options) => {
     const { installMcpConfig, getLocalXWebMcpConfig } = require('../mcp');
+    const mode = options.stdio ? 'stdio' : 'sse';
+    const port = parseInt(options.port, 10) || 9900;
     logger.banner();
-    console.log(chalk.bold('\n  LocalXWeb MCP Auto-Installer\n'));
-    const results = installMcpConfig(client || 'all');
+    console.log(chalk.bold(`\n  LocalXWeb MCP Auto-Installer (Mode: ${mode.toUpperCase()} on Port ${port})\n`));
+    const results = installMcpConfig(client || 'all', mode, port);
     for (const res of results) {
       if (res.success) {
         console.log(`  ${chalk.green('✔')} ${chalk.bold(res.client.toUpperCase())}: Configured at ${chalk.gray(res.path)}`);
@@ -770,8 +848,8 @@ mcpCmd
         console.log(`  ${chalk.yellow('ℹ')} ${chalk.bold(res.client.toUpperCase())}: Skipped (${res.error})`);
       }
     }
-    console.log(chalk.bold('\n  Stdio Configuration Snippet:\n'));
-    console.log(chalk.cyan(JSON.stringify({ localxweb: getLocalXWebMcpConfig() }, null, 2)));
+    console.log(chalk.bold('\n  Configuration Snippet:\n'));
+    console.log(chalk.cyan(JSON.stringify({ localxweb: getLocalXWebMcpConfig(mode, port) }, null, 2)));
     console.log('\n  Restart your AI client to access all 22 LocalXWeb tools!\n');
   });
 

@@ -34,13 +34,21 @@ function getClientConfigPaths() {
 
 /**
  * Generate standard MCP server config object for LocalXWeb
+ * @param {string} mode - 'sse' | 'stdio'
+ * @param {number} port - port number for SSE mode
  */
-function getLocalXWebMcpConfig() {
+function getLocalXWebMcpConfig(mode = 'sse', port = 9900) {
+  if (mode === 'sse') {
+    return {
+      serverUrl: `http://localhost:${port}/sse`
+    };
+  }
+
   const binPath = path.resolve(__dirname, '../../bin/localxweb.js');
 
   return {
     command: 'node',
-    args: [binPath, 'mcp'],
+    args: [binPath, 'mcp', 'stdio'],
     env: {
       NODE_ENV: 'production'
     }
@@ -50,10 +58,12 @@ function getLocalXWebMcpConfig() {
 /**
  * Install LocalXWeb MCP server into target AI client configuration
  * @param {string} clientName - 'all' | 'claude' | 'antigravity' | 'cursor' | 'windsurf'
+ * @param {string} mode - 'sse' | 'stdio'
+ * @param {number} port - Port number for SSE mode
  */
-function installMcpConfig(clientName = 'all') {
+function installMcpConfig(clientName = 'all', mode = 'sse', port = 9900) {
   const clientPaths = getClientConfigPaths();
-  const mcpConfig = getLocalXWebMcpConfig();
+  const mcpConfig = getLocalXWebMcpConfig(mode, port);
   const results = [];
 
   const targets = clientName === 'all'

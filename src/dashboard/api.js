@@ -434,7 +434,9 @@ router.get('/mcp/info', (req, res) => {
 router.post('/mcp/install', (req, res) => {
   const { installMcpConfig } = require('../mcp');
   const client = req.body.client || 'all';
-  const results = installMcpConfig(client);
+  const mode = req.body.mode || 'sse';
+  const port = parseInt(req.body.port, 10) || 9900;
+  const results = installMcpConfig(client, mode, port);
   res.json({ success: true, results });
 });
 

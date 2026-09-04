@@ -1344,12 +1344,14 @@ function renderMcpSnippet() {
 
   const configObj = {
     mcpServers: {
-      localxweb: mcpState.info.mcpConfig
+      localxweb: {
+        serverUrl: `http://localhost:9900/sse`
+      }
     }
   };
 
   if (snippetEl) snippetEl.textContent = JSON.stringify(configObj, null, 2);
-  if (pathEl) pathEl.innerHTML = `Configuration File: <code class="code-pill">${targetPath || 'Auto-detected'}</code>`;
+  if (pathEl) pathEl.innerHTML = `Configuration File: <code class="code-pill">${targetPath || 'Auto-detected'}</code> · Network Port: <strong style="color: #6366f1;">9900</strong>`;
 }
 
 function copyMcpSnippet() {
@@ -1362,16 +1364,16 @@ function copyMcpSnippet() {
 
 async function autoInstallMcpGui() {
   try {
-    showToast('Auto-installing LocalXWeb MCP configuration...');
+    showToast('Auto-installing LocalXWeb MCP configuration (Port 9900)...');
     const res = await fetch('/api/mcp/install', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ client: 'all' })
+      body: JSON.stringify({ client: 'all', mode: 'sse', port: 9900 })
     });
     const data = await res.json();
     if (data.success) {
       const okClients = (data.results || []).filter(r => r.success).map(r => r.client.toUpperCase());
-      showToast(`Installed MCP in: ${okClients.join(', ')}! Restart your AI client. ✔`);
+      showToast(`Installed MCP (Port 9900) in: ${okClients.join(', ')}! Restart your AI client. ✔`);
     } else {
       showToast('Installation failed: ' + (data.error || 'Unknown error'), true);
     }
