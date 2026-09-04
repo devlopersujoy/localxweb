@@ -691,11 +691,11 @@ try {
               <div class="form-group">
                 <label>MCP API Key Authentication</label>
                 <div style="display: flex; align-items: center; gap: 10px; margin-top: 6px;">
-                  <label class="toggle-switch-ui">
-                    <input type="checkbox" id="setting-mcp-auth">
+                  <label class="toggle-switch-ui" title="Toggle Require API Key for MCP AI Connections">
+                    <input type="checkbox" id="setting-mcp-auth" onchange="toggleMcpAuth(this.checked)">
                     <span class="toggle-slider-ui"></span>
                   </label>
-                  <span style="font-size: 0.85rem; color: var(--text-muted);">Require API Key for MCP AI Connections</span>
+                  <span id="setting-mcp-auth-label" style="font-size: 0.85rem; color: var(--text-muted);">Require API Key for MCP AI Connections</span>
                 </div>
               </div>
             </div>

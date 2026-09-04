@@ -1237,7 +1237,13 @@ async function loadSettings() {
       passInput.value = cfg.mysql.rootPassword;
     }
     if (mcpPortInput && cfg.mcpPort !== undefined) mcpPortInput.value = cfg.mcpPort;
-    if (mcpAuthInput && cfg.mcpAuthEnabled !== undefined) mcpAuthInput.checked = !!cfg.mcpAuthEnabled;
+    if (mcpAuthInput && cfg.mcpAuthEnabled !== undefined) {
+      mcpAuthInput.checked = !!cfg.mcpAuthEnabled;
+    }
+    const mcpToggle = document.getElementById('mcp-auth-toggle');
+    if (mcpToggle && cfg.mcpAuthEnabled !== undefined) {
+      mcpToggle.checked = !!cfg.mcpAuthEnabled;
+    }
   } catch (err) {
     console.error('Failed to load settings:', err);
   }
@@ -1342,11 +1348,13 @@ async function loadMcpInfo() {
 
     // Update Security UI Controls
     const authToggle = document.getElementById('mcp-auth-toggle');
+    const settingAuth = document.getElementById('setting-mcp-auth');
     const authLabel = document.getElementById('mcp-auth-status-label');
     const authBadge = document.getElementById('mcp-auth-badge');
     const keyInput = document.getElementById('mcp-api-key-input');
 
     if (authToggle) authToggle.checked = mcpState.authRequired;
+    if (settingAuth) settingAuth.checked = mcpState.authRequired;
     if (authLabel) authLabel.textContent = mcpState.authRequired ? 'Active ✔' : 'Disabled';
     if (authBadge) {
       authBadge.textContent = mcpState.authRequired ? 'API KEY REQUIRED' : 'OPEN ACCESS';
@@ -1362,6 +1370,11 @@ async function loadMcpInfo() {
 }
 
 async function toggleMcpAuth(enabled) {
+  const settingCheckbox = document.getElementById('setting-mcp-auth');
+  const mcpCheckbox = document.getElementById('mcp-auth-toggle');
+  if (settingCheckbox) settingCheckbox.checked = enabled;
+  if (mcpCheckbox) mcpCheckbox.checked = enabled;
+
   try {
     const res = await fetch('/api/mcp/api-key/toggle', {
       method: 'POST',
@@ -1369,20 +1382,26 @@ async function toggleMcpAuth(enabled) {
       body: JSON.stringify({ enabled })
     });
     const data = await res.json();
-    mcpState.authRequired = !!data.enabled;
+    const isAuth = !!data.enabled;
+    mcpState.authRequired = isAuth;
     if (data.apiKey) mcpState.apiKey = data.apiKey;
+
+    if (settingCheckbox) settingCheckbox.checked = isAuth;
+    if (mcpCheckbox) mcpCheckbox.checked = isAuth;
 
     const authLabel = document.getElementById('mcp-auth-status-label');
     const authBadge = document.getElementById('mcp-auth-badge');
-    if (authLabel) authLabel.textContent = mcpState.authRequired ? 'Active ✔' : 'Disabled';
+    if (authLabel) authLabel.textContent = isAuth ? 'Active ✔' : 'Disabled';
     if (authBadge) {
-      authBadge.textContent = mcpState.authRequired ? 'API KEY REQUIRED' : 'OPEN ACCESS';
-      authBadge.style.background = mcpState.authRequired ? '#f59e0b' : '#64748b';
+      authBadge.textContent = isAuth ? 'API KEY REQUIRED' : 'OPEN ACCESS';
+      authBadge.style.background = isAuth ? '#f59e0b' : '#64748b';
     }
 
-    showToast(data.message || (enabled ? 'MCP API Key enabled' : 'MCP API Key disabled'));
+    showToast(data.message || (isAuth ? 'MCP API Key requirement enabled ✔' : 'MCP API Key requirement disabled'));
     renderMcpSnippet();
   } catch (err) {
+    if (settingCheckbox) settingCheckbox.checked = !enabled;
+    if (mcpCheckbox) mcpCheckbox.checked = !enabled;
     showToast('Failed to toggle MCP auth: ' + err.message, true);
   }
 }
