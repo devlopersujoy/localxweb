@@ -382,10 +382,10 @@ function createMcpTools(context) {
       }
     },
 
-    // 14. Import Database SQL
+    // 14. Import / Push Database SQL
     {
       name: 'localxweb_db_import',
-      description: 'Import a .sql file into a MySQL database',
+      description: 'Import or push a .sql file or raw SQL script into a MySQL database (auto-creates database if missing)',
       inputSchema: {
         type: 'object',
         properties: {
@@ -396,20 +396,27 @@ function createMcpTools(context) {
           sourceFile: {
             type: 'string',
             description: 'Path to the .sql file to import'
+          },
+          sqlContent: {
+            type: 'string',
+            description: 'Optional raw SQL statements to execute directly instead of a file'
           }
         },
-        required: ['name', 'sourceFile']
+        required: ['name']
       },
-      handler: async ({ name, sourceFile }) => {
+      handler: async ({ name, sourceFile, sqlContent }) => {
         if (!name) throw new Error('Parameter "name" (target database) is required.');
-        if (!sourceFile) throw new Error('Parameter "sourceFile" (.sql path) is required.');
-        if (!fs.existsSync(sourceFile)) {
-          throw new Error(`SQL file "${sourceFile}" does not exist.`);
+        if (!sourceFile && !sqlContent) {
+          throw new Error('Either "sourceFile" (path to .sql) or "sqlContent" (raw SQL string) must be provided.');
         }
-        await dbManager.importSql(name, sourceFile);
+        await dbManager.importSql(name, sourceFile || sqlContent);
+        const tables = await dbManager.listTables(name);
         return {
           success: true,
-          message: `Imported "${sourceFile}" into database "${name}" successfully`
+          database: name,
+          message: `SQL pushed into database "${name}" successfully`,
+          totalTables: tables.length,
+          tables: tables.map(t => t.name)
         };
       }
     },

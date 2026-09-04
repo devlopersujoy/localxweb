@@ -341,6 +341,34 @@ router.post('/databases/:name/export', async (req, res) => {
   res.json({ success: ok, path: destFile, fileName });
 });
 
+// Import / Push SQL into database
+router.post('/databases/:name/import', async (req, res) => {
+  try {
+    const { sourceFile, sqlContent } = req.body || {};
+    const dbName = req.params.name;
+    if (!sourceFile && !sqlContent) {
+      return res.status(400).json({ success: false, error: 'Either sourceFile or sqlContent is required' });
+    }
+    const ok = await dbManager.importSql(dbName, sourceFile || sqlContent);
+    const tables = await dbManager.listTables(dbName);
+    res.json({ success: !!ok, database: dbName, tables });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Execute SQL Query on database (edit/update/delete/select)
+router.post('/databases/:name/query', async (req, res) => {
+  try {
+    const { query } = req.body || {};
+    if (!query) return res.status(400).json({ success: false, error: 'Query is required' });
+    const result = await dbManager.executeQuery(query, req.params.name);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Get service logs
 router.get('/logs/:service', (req, res) => {
   const svc = services[req.params.service];

@@ -341,9 +341,30 @@ class DatabaseManager {
     }
   }
 
-  async importSql(dbName, srcFile) {
-    if (!fs.existsSync(srcFile)) {
-      throw new Error(`SQL file "${srcFile}" does not exist`);
+  async importSql(dbName, srcFileOrContent) {
+    // Ensure target database exists
+    try {
+      await this.createDatabase(dbName);
+    } catch (_) {}
+
+    let sql = '';
+    let isTempFile = false;
+    let actualFilePath = null;
+
+    if (typeof srcFileOrContent === 'string' && fs.existsSync(srcFileOrContent)) {
+      actualFilePath = srcFileOrContent;
+      sql = fs.readFileSync(srcFileOrContent, 'utf8');
+    } else if (typeof srcFileOrContent === 'string') {
+      sql = srcFileOrContent;
+      // Write to temp file for potential CLI tool import
+      const platform = require('../utils/platform');
+      const tempDir = path.join(platform.localxwebDir, 'tmp');
+      if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+      actualFilePath = path.join(tempDir, `temp_import_${Date.now()}.sql`);
+      fs.writeFileSync(actualFilePath, sql, 'utf8');
+      isTempFile = true;
+    } else {
+      throw new Error('Invalid SQL source provided. Must be a file path or SQL string.');
     }
 
     const clientTool = this.mysqlService.getMysqlClientPath();
@@ -351,21 +372,25 @@ class DatabaseManager {
     const port = mysqlCfg.port || 3306;
     const passArg = mysqlCfg.rootPassword ? `-p"${mysqlCfg.rootPassword}"` : '';
 
-    if (clientTool) {
+    if (clientTool && actualFilePath) {
       try {
-        const cmd = `"${clientTool}" -h 127.0.0.1 -P ${port} -u root ${passArg} "${dbName}" < "${srcFile}"`;
+        const cmd = `"${clientTool}" -h 127.0.0.1 -P ${port} -u root ${passArg} "${dbName}" < "${actualFilePath}"`;
         execSync(cmd, { shell: true, stdio: 'ignore' });
-        logger.success(`Database "${dbName}" imported from ${srcFile}`);
+        if (isTempFile && fs.existsSync(actualFilePath)) fs.unlinkSync(actualFilePath);
+        logger.success(`Database "${dbName}" imported successfully via mysql client`);
         return true;
       } catch (e) {
-        logger.warn(`Client import failed: ${e.message}. Trying Node query runner...`);
+        logger.warn(`Client import failed: ${e.message}. Falling back to Node query runner...`);
       }
+    }
+
+    if (isTempFile && fs.existsSync(actualFilePath)) {
+      try { fs.unlinkSync(actualFilePath); } catch (_) {}
     }
 
     let conn;
     try {
       conn = await this._getConnection(dbName);
-      const sql = fs.readFileSync(srcFile, 'utf8');
       const statements = sql
         .split(/;\s*[\r\n]+/)
         .map(s => s.trim())
@@ -378,7 +403,7 @@ class DatabaseManager {
           logger.warn(`Query warning during import: ${err.message}`);
         }
       }
-      logger.success(`Database "${dbName}" imported successfully`);
+      logger.success(`Database "${dbName}" imported successfully (${statements.length} statements)`);
       return true;
     } catch (e) {
       logger.error(`Import failed: ${e.message}`);

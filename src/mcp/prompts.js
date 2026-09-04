@@ -3,15 +3,30 @@
  */
 function createMcpPrompts() {
   const prompts = [
-    // 1. Run PHP Application
+    // 1. Run PHP App & Fullstack Web/Database Orchestrator
     {
       name: 'run-php-app',
-      description: 'Run, preview, or launch a PHP web application in LocalXWeb with automatic web server and database orchestration',
+      description: 'The complete fullstack workflow for PHP & Web apps: run web apps, auto-create MySQL database, push/import SQL files, edit/query schema, and delete/clean up',
       arguments: [
         {
           name: 'appName',
-          description: 'Name of the PHP application folder in DocumentRoot (e.g. "my-app", "blog", "portfolio")',
+          description: 'Name of the PHP/web application folder in DocumentRoot (e.g. "my-app", "blog", "shop")',
           required: true
+        },
+        {
+          name: 'action',
+          description: 'Workflow action: "run" (default), "create-db", "push-sql", "edit-db", "delete-db", "delete-app", "export-db"',
+          required: false
+        },
+        {
+          name: 'databaseName',
+          description: 'Optional custom MySQL database name (defaults to appName)',
+          required: false
+        },
+        {
+          name: 'sqlFileOrQuery',
+          description: 'Optional .sql file path to push into DB, or raw SQL query to execute/edit',
+          required: false
         },
         {
           name: 'withDatabase',
@@ -19,35 +34,156 @@ function createMcpPrompts() {
           required: false
         },
         {
-          name: 'databaseName',
-          description: 'Optional custom database name (defaults to appName)',
+          name: 'template',
+          description: 'Template type if creating new site ("php", "html", "wordpress", "laravel", default: "php")',
           required: false
         }
       ],
       handler: (args) => {
         const app = args.appName || 'my-app';
+        const action = (args.action || 'run').toLowerCase();
         const withDb = args.withDatabase !== 'false';
         const dbName = (args.databaseName || app).toLowerCase().replace(/[^a-z0-9_]/g, '_');
+        const sql = args.sqlFileOrQuery;
+        const tpl = args.template || 'php';
+
+        if (action === 'push-sql' || action === 'import-sql') {
+          return {
+            description: `Push SQL into database "${dbName}"`,
+            messages: [
+              {
+                role: 'user',
+                content: {
+                  type: 'text',
+                  text: `Please push/import SQL into MySQL database "${dbName}" for app "${app}":
+1. Verify MySQL is running via \`localxweb_status\`. If stopped, start via \`localxweb_start_service\` (service="mysql").
+2. Ensure database "${dbName}" exists by calling \`localxweb_db_create\` with name="${dbName}".
+3. Push the SQL using \`localxweb_db_import\` with name="${dbName}"${sql ? (sql.endsWith('.sql') ? `, sourceFile="${sql}"` : `, sqlContent="${sql.replace(/"/g, '\\"')}"`) : ''}.
+4. Call \`localxweb_db_tables\` with database="${dbName}" to verify created tables, schema, and row counts.
+5. Provide a summary of the imported database schema and table list.`
+                }
+              }
+            ]
+          };
+        }
+
+        if (action === 'create-db') {
+          return {
+            description: `Create MySQL database "${dbName}"`,
+            messages: [
+              {
+                role: 'user',
+                content: {
+                  type: 'text',
+                  text: `Please create and configure MySQL database "${dbName}":
+1. Ensure MySQL is running via \`localxweb_status\`.
+2. Call \`localxweb_db_create\` with name="${dbName}".
+3. Retrieve credentials via \`localxweb_db_creds\` with name="${dbName}".
+${sql ? `4. Import schema/seeds using \`localxweb_db_import\` with name="${dbName}" and ${sql.endsWith('.sql') ? `sourceFile="${sql}"` : `sqlContent="${sql.replace(/"/g, '\\"')}"`}.` : ''}
+5. Provide the user with ready-to-use .env configuration, PDO snippet, and credentials.`
+                }
+              }
+            ]
+          };
+        }
+
+        if (action === 'edit-db' || action === 'query-db') {
+          return {
+            description: `Execute SQL edit/query on database "${dbName}"`,
+            messages: [
+              {
+                role: 'user',
+                content: {
+                  type: 'text',
+                  text: `Please edit/query database "${dbName}":
+1. Ensure MySQL is running via \`localxweb_status\`.
+2. Execute SQL using \`localxweb_db_query\` with database="${dbName}" and query="${(sql || 'SHOW TABLES').replace(/"/g, '\\"')}".
+3. Call \`localxweb_db_tables\` with database="${dbName}" to show current tables and row counts.
+4. Return results in a clean markdown table.`
+                }
+              }
+            ]
+          };
+        }
+
+        if (action === 'delete-db') {
+          return {
+            description: `Delete database "${dbName}"`,
+            messages: [
+              {
+                role: 'user',
+                content: {
+                  type: 'text',
+                  text: `Please delete/drop database "${dbName}":
+1. Ensure MySQL is running via \`localxweb_status\`.
+2. Call \`localxweb_db_drop\` with name="${dbName}".
+3. Call \`localxweb_db_list\` to confirm remaining databases.
+4. Confirm successful deletion.`
+                }
+              }
+            ]
+          };
+        }
+
+        if (action === 'delete-app') {
+          return {
+            description: `Delete web app "${app}" and database "${dbName}"`,
+            messages: [
+              {
+                role: 'user',
+                content: {
+                  type: 'text',
+                  text: `Please completely delete web app "${app}":
+1. Delete site folder using \`localxweb_site_delete\` with name="${app}".
+2. Delete companion database using \`localxweb_db_drop\` with name="${dbName}".
+3. Confirm deletion of both web application and database.`
+                }
+              }
+            ]
+          };
+        }
+
+        if (action === 'export-db') {
+          return {
+            description: `Export database "${dbName}" to SQL file`,
+            messages: [
+              {
+                role: 'user',
+                content: {
+                  type: 'text',
+                  text: `Please export database "${dbName}":
+1. Ensure MySQL is running via \`localxweb_status\`.
+2. Call \`localxweb_db_export\` with name="${dbName}".
+3. Provide the full file path and backup size.`
+                }
+              }
+            ]
+          };
+        }
+
+        // Default: Fullstack "run" workflow
         return {
-          description: `Run PHP Application: "${app}"`,
+          description: `Run PHP/Web Application: "${app}"`,
           messages: [
             {
               role: 'user',
               content: {
                 type: 'text',
-                text: `Please run and prepare the PHP application "${app}" in LocalXWeb:
+                text: `Please run, configure, and launch the PHP/web application "${app}" in LocalXWeb:
 1. Check stack status via \`localxweb_status\`.
    - If Apache is stopped, start it via \`localxweb_start_service\` with service="apache".
    - ${withDb ? 'If MySQL is stopped, start it via \`localxweb_start_service\` with service="mysql".' : ''}
-2. Call \`localxweb_site_list\` to see if "${app}" already exists. If not, scaffold it with \`localxweb_site_create\` (name="${app}", template="php").
+2. Call \`localxweb_site_list\` to see if "${app}" exists. If not, scaffold it with \`localxweb_site_create\` (name="${app}", template="${tpl}").
 3. ${withDb ? `Ensure database "${dbName}" exists by calling \`localxweb_db_create\` with name="${dbName}". Retrieve credentials with \`localxweb_db_creds\`.` : ''}
-4. Call \`localxweb_php_info\` to verify key extensions (mysqli, pdo_mysql, curl) are loaded.
-5. Test the application endpoint using \`localxweb_test_endpoint\` with path="/${app}/" to verify it returns HTTP 200 OK.
-6. Provide the user with:
-   - Direct Local URL (e.g. \`http://localhost:<apachePort>/${app}/\`)
+${sql ? `4. Push the provided SQL file/schema into database "${dbName}" using \`localxweb_db_import\` with name="${dbName}" and ${sql.endsWith('.sql') ? `sourceFile="${sql}"` : `sqlContent="${sql.replace(/"/g, '\\"')}"`}.` : ''}
+5. Call \`localxweb_php_info\` to verify key extensions (mysqli, pdo_mysql, curl) are loaded. If any are missing, activate them via \`localxweb_enable_extension\`.
+6. Test the live application endpoint using \`localxweb_test_endpoint\` with path="/${app}/" to verify HTTP 200 OK.
+7. Provide the developer with:
+   - Direct Live URL: \`http://localhost:<apachePort>/${app}/\`
    - DocumentRoot location on disk
-   ${withDb ? '- Database connection config (.env / PDO format)' : ''}
-   - Quick tips on how to edit and extend the application.`
+   ${withDb ? '- Database credentials & ready-to-use .env / PDO config block' : ''}
+   ${sql ? '- Confirmation of imported database tables' : ''}
+   - Quick tips on editing files and extending the application.`
               }
             }
           ]
@@ -55,7 +191,60 @@ function createMcpPrompts() {
       }
     },
 
-    // 2. Fix PHP Error & Debugging
+    // 2. Fullstack PHP & MySQL Workflow (Alias/Companion)
+    {
+      name: 'fullstack-php-workflow',
+      description: 'End-to-end fullstack prototype: run PHP web app, auto-create MySQL database, push SQL schema files, edit/query records, and delete/manage',
+      arguments: [
+        {
+          name: 'appName',
+          description: 'Name of the web application (e.g. "my-project")',
+          required: true
+        },
+        {
+          name: 'sqlFile',
+          description: 'Optional path to .sql schema/dump file to push into database',
+          required: false
+        },
+        {
+          name: 'action',
+          description: 'Action to perform: "run", "push-sql", "edit-db", "delete-db", "delete-app"',
+          required: false
+        }
+      ],
+      handler: (args) => {
+        const app = args.appName;
+        const action = args.action || 'run';
+        const sql = args.sqlFile;
+        const dbName = app.toLowerCase().replace(/[^a-z0-9_]/g, '_');
+        return {
+          description: `Fullstack Workflow for "${app}" (${action})`,
+          messages: [
+            {
+              role: 'user',
+              content: {
+                type: 'text',
+                text: `You are executing the LocalXWeb Fullstack Web & Database Prototype for "${app}".
+Action: ${action}
+Database: ${dbName}
+${sql ? `SQL File: ${sql}` : ''}
+
+Execute the following steps:
+1. Ensure Apache and MySQL are running using \`localxweb_status\` and \`localxweb_start_service\`.
+2. Ensure project folder exists in DocumentRoot via \`localxweb_site_list\` / \`localxweb_site_create\`.
+3. Ensure MySQL database \`${dbName}\` is created via \`localxweb_db_create\` and retrieve connection snippets via \`localxweb_db_creds\`.
+${sql ? `4. Push the SQL file into the database using \`localxweb_db_import\` with name="${dbName}" and sourceFile="${sql}". Verify tables via \`localxweb_db_tables\`.` : ''}
+5. Check PHP extensions using \`localxweb_php_info\` (enable mysqli/pdo_mysql if needed via \`localxweb_enable_extension\`).
+6. Verify live web app with \`localxweb_test_endpoint\` (path="/${app}/").
+7. Output complete project status: local URL, credentials, and schema details.`
+              }
+            }
+          ]
+        };
+      }
+    },
+
+    // 3. Fix PHP Error & Debugging
     {
       name: 'fix-php-error',
       description: 'Diagnose, debug, and fix PHP runtime errors, 500 server errors, fatal exceptions, or missing extensions',
@@ -99,7 +288,7 @@ Follow these steps to resolve the issue:
       }
     },
 
-    // 3. Enable PHP Extension
+    // 4. Enable PHP Extension
     {
       name: 'enable-php-extension',
       description: 'Check and enable a required PHP extension in php.ini (e.g. mysqli, pdo_mysql, curl, gd, zip, intl) and reload Apache',
@@ -130,7 +319,7 @@ Follow these steps to resolve the issue:
       }
     },
 
-    // 4. Clone and Run Git Repository
+    // 5. Clone and Run Git Repository
     {
       name: 'clone-and-run-repo',
       description: 'Clone a Git repository into LocalXWeb, configure environment and database, and launch it',
@@ -177,7 +366,7 @@ Follow these steps to resolve the issue:
       }
     },
 
-    // 5. Test API Endpoint
+    // 6. Test API Endpoint
     {
       name: 'test-api-endpoint',
       description: 'Send test HTTP requests to local PHP API endpoints and inspect responses, headers, and logs',
@@ -219,7 +408,7 @@ Follow these steps to resolve the issue:
       }
     },
 
-    // 6. Create RESTful PHP CRUD API
+    // 7. Create RESTful PHP CRUD API
     {
       name: 'create-crud-api',
       description: 'Scaffold a complete RESTful PHP CRUD API connected to MySQL database with JSON responses and validation',
@@ -265,7 +454,7 @@ Follow these steps to resolve the issue:
       }
     },
 
-    // 7. Quick PHP Snippet Evaluation
+    // 8. Quick PHP Snippet Evaluation
     {
       name: 'quick-php-snippet',
       description: 'Quickly test, evaluate, or run a PHP code snippet in LocalXWeb and inspect output and errors',
@@ -309,7 +498,7 @@ Workflow:
       }
     },
 
-    // 8. WordPress Setup
+    // 9. WordPress Setup
     {
       name: 'wordpress-setup',
       description: 'Complete automated setup workflow for a local WordPress site and companion database',
@@ -346,7 +535,7 @@ Workflow:
       }
     },
 
-    // 9. Scaffold Web Project
+    // 10. Scaffold Web Project
     {
       name: 'scaffold-web-app',
       description: 'Scaffold and run a new web project with database integration (php, html, wordpress, laravel)',
@@ -382,7 +571,7 @@ Workflow:
       }
     },
 
-    // 10. Setup Database
+    // 11. Setup Database
     {
       name: 'setup-database',
       description: 'Guided workflow for creating a new database with dedicated credentials and .env configuration',
@@ -418,7 +607,7 @@ Workflow:
       }
     },
 
-    // 11. SQL Query Assistant
+    // 12. SQL Query Assistant
     {
       name: 'sql-query-assistant',
       description: 'Inspect schemas, examine tables, write and optimize raw SQL queries on MySQL/MariaDB',
@@ -459,7 +648,7 @@ Please perform the following workflow:
       }
     },
 
-    // 12. Migrate Database
+    // 13. Migrate Database
     {
       name: 'migrate-database',
       description: 'Backup, export, or import database SQL dump files for versioning and migrations',
@@ -504,7 +693,7 @@ Please perform the following workflow:
       }
     },
 
-    // 13. Server Performance Tune
+    // 14. Server Performance Tune
     {
       name: 'server-performance-tune',
       description: 'Analyze Apache, MySQL, PHP configurations, memory limits, and error logs for optimization',
@@ -537,7 +726,7 @@ Please audit LocalXWeb stack performance focusing on: ${focus}:
       }
     },
 
-    // 14. Diagnose Server
+    // 15. Diagnose Server
     {
       name: 'diagnose-server',
       description: 'Systematic diagnosis guide for troubleshooting LocalXWeb services, ports, and permissions',
