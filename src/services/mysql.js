@@ -241,6 +241,10 @@ default-character-set = utf8mb4
       const ready = await waitForPort(this.port, 15000);
       if (ready) {
         logger.success(`MySQL/MariaDB started on port ${this.port}`);
+        try {
+          const DatabaseManager = require('../database/manager');
+          new DatabaseManager(this).syncDatabasesWithMysql().catch(() => {});
+        } catch {}
         return true;
       } else {
         logger.warn('MySQL process spawned; waiting for port response...');

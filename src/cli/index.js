@@ -364,13 +364,14 @@ db.command('list')
   .action(async () => {
     const databases = await dbManager.listDatabases();
     if (databases.length === 0) {
-      logger.info('No user databases found. (Make sure MySQL is running)');
+      logger.info('No databases found in registry. Run "localxweb db create <name>" to create one.');
       return;
     }
     console.log(chalk.bold('\n  Databases:\n'));
     for (const dbName of databases) {
       const info = await dbManager.getDatabaseInfo(dbName);
-      console.log(`  ${chalk.cyan('●')} ${chalk.bold(dbName)} ${chalk.gray(`(${info.tables} tables, ${info.sizeMB} MB)`)}`);
+      const offlineTag = info.mysqlOnline === false ? chalk.yellow(' [JSON registry - MySQL offline]') : '';
+      console.log(`  ${chalk.cyan('●')} ${chalk.bold(dbName)} ${chalk.gray(`(${info.tables} tables, ${info.sizeMB} MB)`)}${offlineTag}`);
     }
     console.log('');
   });
@@ -385,7 +386,11 @@ db.command('create <name>')
         username: opts.user,
         password: opts.password
       });
-      logger.success(`Database "${name}" ready!`);
+      if (res.mysqlSynced === false) {
+        logger.warn(`Database "${name}" saved in JSON registry (MySQL is offline). It will sync when MySQL starts.`);
+      } else {
+        logger.success(`Database "${name}" ready in MySQL!`);
+      }
       if (opts.user) {
         console.log(chalk.bold('\n  Connection Configuration:'));
         console.log(`    Host:     ${chalk.cyan('127.0.0.1')}`);

@@ -25,85 +25,51 @@ class DatabaseManager {
     return mysql.createConnection(connOpts);
   }
 
-  async listDatabases() {
-    let conn;
+  _getDatabasesFilePath() {
+    const platform = require('../utils/platform');
+    return path.join(platform.localxwebDir, 'databases.json');
+  }
+
+  _loadDatabases() {
     try {
-      conn = await this._getConnection();
-      const [rows] = await conn.query('SHOW DATABASES');
-      return rows.map(r => r.Database).filter(
-        db => !['information_schema', 'performance_schema', 'mysql', 'sys'].includes(db)
-      );
+      const file = this._getDatabasesFilePath();
+      if (fs.existsSync(file)) {
+        return JSON.parse(fs.readFileSync(file, 'utf8'));
+      }
+    } catch {}
+    return {};
+  }
+
+  _saveDatabases(all) {
+    try {
+      const file = this._getDatabasesFilePath();
+      const dir = path.dirname(file);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(file, JSON.stringify(all, null, 2), 'utf8');
     } catch (e) {
-      logger.error(`Failed to list databases: ${e.message}`);
-      return [];
-    } finally {
-      if (conn) await conn.end();
+      logger.warn(`Could not save databases file: ${e.message}`);
     }
   }
 
-  async createDatabase(name, options = {}) {
-    if (!name || !/^[a-zA-Z0-9_]+$/.test(name)) {
-      throw new Error('Invalid database name. Use only letters, numbers, and underscores.');
+  _saveDatabaseEntry(name, data) {
+    const all = this._loadDatabases();
+    all[name] = {
+      ...(all[name] || {}),
+      ...data,
+      updatedAt: new Date().toISOString()
+    };
+    this._saveDatabases(all);
+    return all[name];
+  }
+
+  _removeDatabaseEntry(name) {
+    const all = this._loadDatabases();
+    if (all[name]) {
+      delete all[name];
+      this._saveDatabases(all);
+      return true;
     }
-
-    const { username, password, collation = 'utf8mb4_unicode_ci' } = options;
-    const mysqlCfg = config.get('mysql') || {};
-    const port = mysqlCfg.port || 3306;
-
-    let conn;
-    try {
-      conn = await this._getConnection();
-      await conn.query(`CREATE DATABASE IF NOT EXISTS \`${name}\` CHARACTER SET utf8mb4 COLLATE ${collation}`);
-      logger.success(`Database "${name}" created`);
-
-      let userCreated = false;
-      if (username && username.trim()) {
-        const safeUser = username.trim().replace(/['\\]/g, '');
-        const pass = password || '';
-        const escapedPass = pass.replace(/'/g, "''");
-
-        // Create user for both localhost and 127.0.0.1
-        try {
-          await conn.query(`CREATE USER IF NOT EXISTS '${safeUser}'@'localhost' IDENTIFIED BY '${escapedPass}'`);
-          await conn.query(`ALTER USER '${safeUser}'@'localhost' IDENTIFIED BY '${escapedPass}'`);
-          await conn.query(`GRANT ALL PRIVILEGES ON \`${name}\`.* TO '${safeUser}'@'localhost' WITH GRANT OPTION`);
-
-          await conn.query(`CREATE USER IF NOT EXISTS '${safeUser}'@'%' IDENTIFIED BY '${escapedPass}'`);
-          await conn.query(`ALTER USER '${safeUser}'@'%' IDENTIFIED BY '${escapedPass}'`);
-          await conn.query(`GRANT ALL PRIVILEGES ON \`${name}\`.* TO '${safeUser}'@'%' WITH GRANT OPTION`);
-
-          await conn.query('FLUSH PRIVILEGES');
-          userCreated = true;
-          logger.success(`Dedicated user "${safeUser}" created with full privileges on "${name}"`);
-        } catch (uErr) {
-          logger.warn(`Could not create user "${safeUser}": ${uErr.message}`);
-        }
-      }
-
-      const activeUser = userCreated ? username.trim() : 'root';
-      const activePass = userCreated ? (password || '') : (mysqlCfg.rootPassword || '');
-
-      const credDetails = {
-        success: true,
-        database: name,
-        host: '127.0.0.1',
-        port,
-        user: activeUser,
-        password: activePass,
-        envSnippet: `DB_CONNECTION=mysql\nDB_HOST=127.0.0.1\nDB_PORT=${port}\nDB_DATABASE=${name}\nDB_USERNAME=${activeUser}\nDB_PASSWORD=${activePass}`,
-        pdoSnippet: `$pdo = new PDO('mysql:host=127.0.0.1;port=${port};dbname=${name};charset=utf8mb4', '${activeUser}', '${activePass}', [\n    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,\n    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC\n]);`
-      };
-
-      // Persist credentials so password is ALWAYS available in GUI & CLI
-      this._saveCredential(name, { user: activeUser, password: activePass });
-
-      return credDetails;
-    } catch (e) {
-      logger.error(`Failed to create database: ${e.message}`);
-      throw e;
-    } finally {
-      if (conn) await conn.end();
-    }
+    return false;
   }
 
   _getCredsFilePath() {
@@ -129,19 +95,20 @@ class DatabaseManager {
         ...creds,
         updatedAt: new Date().toISOString()
       };
-      fs.writeFileSync(file, JSON.stringify(all, null, 2));
+      fs.writeFileSync(file, JSON.stringify(all, null, 2), 'utf8');
     } catch (e) {
       logger.warn(`Could not save credentials file: ${e.message}`);
     }
   }
 
   getCredentials(dbName) {
-    const all = this._loadCredentials();
+    const allCreds = this._loadCredentials();
+    const allDbs = this._loadDatabases();
     const mysqlCfg = config.get('mysql') || {};
     const port = mysqlCfg.port || 3306;
 
-    if (all[dbName]) {
-      const cred = all[dbName];
+    const cred = allCreds[dbName] || allDbs[dbName];
+    if (cred) {
       const pwd = cred.password !== undefined ? cred.password : '';
       const usr = cred.user || 'root';
       return {
@@ -165,6 +132,125 @@ class DatabaseManager {
       envSnippet: `DB_CONNECTION=mysql\nDB_HOST=127.0.0.1\nDB_PORT=${port}\nDB_DATABASE=${dbName}\nDB_USERNAME=root\nDB_PASSWORD=${rootPass}`,
       pdoSnippet: `$pdo = new PDO('mysql:host=127.0.0.1;port=${port};dbname=${dbName};charset=utf8mb4', 'root', '${rootPass}', [\n    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,\n    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC\n]);`
     };
+  }
+
+  async listDatabases() {
+    const localDbsMap = this._loadDatabases();
+    const resultNames = new Set(Object.keys(localDbsMap));
+
+    let conn;
+    try {
+      conn = await this._getConnection();
+      const [rows] = await conn.query('SHOW DATABASES');
+      const mysqlDbs = rows.map(r => r.Database).filter(
+        db => !['information_schema', 'performance_schema', 'mysql', 'sys'].includes(db)
+      );
+
+      let changed = false;
+      for (const db of mysqlDbs) {
+        resultNames.add(db);
+        if (!localDbsMap[db]) {
+          localDbsMap[db] = {
+            name: db,
+            user: 'root',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+          changed = true;
+        }
+      }
+      if (changed) {
+        this._saveDatabases(localDbsMap);
+      }
+    } catch (e) {
+      // MySQL is offline or not installed — fallback gracefully to JSON registry
+      logger.debug(`MySQL not reachable (${e.message}), returning registered databases from JSON.`);
+    } finally {
+      if (conn) {
+        try { await conn.end(); } catch {}
+      }
+    }
+
+    return Array.from(resultNames);
+  }
+
+  async createDatabase(name, options = {}) {
+    if (!name || !/^[a-zA-Z0-9_]+$/.test(name)) {
+      throw new Error('Invalid database name. Use only letters, numbers, and underscores.');
+    }
+
+    const { username, password, collation = 'utf8mb4_unicode_ci' } = options;
+    const mysqlCfg = config.get('mysql') || {};
+    const port = mysqlCfg.port || 3306;
+
+    const activeUser = (username && username.trim()) ? username.trim() : 'root';
+    const activePass = (password !== undefined && password !== null) ? password : (mysqlCfg.rootPassword || '');
+
+    // 1. ALWAYS persist in JSON first (never depends on MySQL running)
+    const existing = this._loadDatabases()[name];
+    this._saveDatabaseEntry(name, {
+      name,
+      user: activeUser,
+      password: activePass,
+      collation,
+      tables: existing?.tables || 0,
+      sizeMB: existing?.sizeMB || 0,
+      createdAt: existing?.createdAt || new Date().toISOString()
+    });
+
+    this._saveCredential(name, { user: activeUser, password: activePass });
+
+    const credDetails = {
+      success: true,
+      database: name,
+      host: '127.0.0.1',
+      port,
+      user: activeUser,
+      password: activePass,
+      mysqlSynced: false,
+      storage: 'json',
+      envSnippet: `DB_CONNECTION=mysql\nDB_HOST=127.0.0.1\nDB_PORT=${port}\nDB_DATABASE=${name}\nDB_USERNAME=${activeUser}\nDB_PASSWORD=${activePass}`,
+      pdoSnippet: `$pdo = new PDO('mysql:host=127.0.0.1;port=${port};dbname=${name};charset=utf8mb4', '${activeUser}', '${activePass}', [\n    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,\n    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC\n]);`
+    };
+
+    // 2. If MySQL is running, create live SQL database and dedicated user
+    let conn;
+    try {
+      conn = await this._getConnection();
+      await conn.query(`CREATE DATABASE IF NOT EXISTS \`${name}\` CHARACTER SET utf8mb4 COLLATE ${collation}`);
+
+      if (username && username.trim()) {
+        const safeUser = username.trim().replace(/['\\]/g, '');
+        const pass = password || '';
+        const escapedPass = pass.replace(/'/g, "''");
+
+        try {
+          await conn.query(`CREATE USER IF NOT EXISTS '${safeUser}'@'localhost' IDENTIFIED BY '${escapedPass}'`);
+          await conn.query(`ALTER USER '${safeUser}'@'localhost' IDENTIFIED BY '${escapedPass}'`);
+          await conn.query(`GRANT ALL PRIVILEGES ON \`${name}\`.* TO '${safeUser}'@'localhost' WITH GRANT OPTION`);
+
+          await conn.query(`CREATE USER IF NOT EXISTS '${safeUser}'@'%' IDENTIFIED BY '${escapedPass}'`);
+          await conn.query(`ALTER USER '${safeUser}'@'%' IDENTIFIED BY '${escapedPass}'`);
+          await conn.query(`GRANT ALL PRIVILEGES ON \`${name}\`.* TO '${safeUser}'@'%' WITH GRANT OPTION`);
+
+          await conn.query('FLUSH PRIVILEGES');
+          logger.success(`Dedicated user "${safeUser}" created with full privileges on "${name}"`);
+        } catch (uErr) {
+          logger.warn(`Could not create user "${safeUser}": ${uErr.message}`);
+        }
+      }
+
+      credDetails.mysqlSynced = true;
+      logger.success(`Database "${name}" created in MySQL`);
+    } catch (e) {
+      logger.info(`MySQL is offline. Database "${name}" saved in local JSON registry (databases.json) and will sync when MySQL starts.`);
+    } finally {
+      if (conn) {
+        try { await conn.end(); } catch {}
+      }
+    }
+
+    return credDetails;
   }
 
   async setRootPassword(newPassword) {
@@ -205,21 +291,42 @@ class DatabaseManager {
       return false;
     }
 
+    // 1. Remove from JSON databases registry
+    this._removeDatabaseEntry(name);
+
+    // 2. Remove from credentials
+    try {
+      const credFile = this._getCredsFilePath();
+      const allCreds = this._loadCredentials();
+      if (allCreds[name]) {
+        delete allCreds[name];
+        fs.writeFileSync(credFile, JSON.stringify(allCreds, null, 2), 'utf8');
+      }
+    } catch {}
+
+    // 3. Drop from MySQL if online
     let conn;
     try {
       conn = await this._getConnection();
       await conn.query(`DROP DATABASE IF EXISTS \`${name}\``);
-      logger.success(`Database "${name}" deleted`);
-      return true;
+      logger.success(`Database "${name}" dropped from MySQL`);
     } catch (e) {
-      logger.error(`Failed to delete database: ${e.message}`);
-      return false;
+      logger.debug(`Could not drop database "${name}" from MySQL: ${e.message}`);
     } finally {
-      if (conn) await conn.end();
+      if (conn) {
+        try { await conn.end(); } catch {}
+      }
     }
+
+    logger.success(`Database "${name}" removed from local JSON registry`);
+    return true;
   }
 
   async getDatabaseInfo(name) {
+    const all = this._loadDatabases();
+    const entry = all[name] || {};
+    const creds = this.getCredentials(name);
+
     let conn;
     try {
       conn = await this._getConnection();
@@ -228,15 +335,86 @@ class DatabaseManager {
         `SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) as size_mb
          FROM information_schema.tables WHERE table_schema = ?`, [name]
       );
+
+      const tableCount = tables[0]?.count || 0;
+      const sizeMB = parseFloat(size[0]?.size_mb || 0);
+
+      this._saveDatabaseEntry(name, {
+        tables: tableCount,
+        sizeMB: sizeMB
+      });
+
       return {
         name,
-        tables: tables[0]?.count || 0,
-        sizeMB: parseFloat(size[0]?.size_mb || 0),
+        tables: tableCount,
+        sizeMB: sizeMB,
+        user: creds.user || 'root',
+        mysqlOnline: true,
+        createdAt: entry.createdAt || null,
+        updatedAt: entry.updatedAt || null
       };
     } catch (e) {
-      return { name, tables: 0, sizeMB: 0 };
+      // MySQL offline fallback: return cached values from databases.json
+      return {
+        name,
+        tables: entry.tables || 0,
+        sizeMB: entry.sizeMB || 0,
+        user: creds.user || 'root',
+        mysqlOnline: false,
+        createdAt: entry.createdAt || null,
+        updatedAt: entry.updatedAt || null
+      };
     } finally {
-      if (conn) await conn.end();
+      if (conn) {
+        try { await conn.end(); } catch {}
+      }
+    }
+  }
+
+  async getDatabaseDetails(name) {
+    const info = await this.getDatabaseInfo(name);
+    const creds = this.getCredentials(name);
+    return {
+      ...info,
+      ...creds
+    };
+  }
+
+  async syncDatabasesWithMysql() {
+    let conn;
+    try {
+      conn = await this._getConnection();
+      const localDbs = this._loadDatabases();
+      const [rows] = await conn.query('SHOW DATABASES');
+      const liveDbs = new Set(rows.map(r => r.Database));
+
+      for (const [name, meta] of Object.entries(localDbs)) {
+        if (!liveDbs.has(name)) {
+          try {
+            const collation = meta.collation || 'utf8mb4_unicode_ci';
+            await conn.query(`CREATE DATABASE IF NOT EXISTS \`${name}\` CHARACTER SET utf8mb4 COLLATE ${collation}`);
+            if (meta.user && meta.user !== 'root') {
+              const safeUser = meta.user.replace(/['\\]/g, '');
+              const pass = (meta.password || '').replace(/'/g, "''");
+              await conn.query(`CREATE USER IF NOT EXISTS '${safeUser}'@'localhost' IDENTIFIED BY '${pass}'`);
+              await conn.query(`GRANT ALL PRIVILEGES ON \`${name}\`.* TO '${safeUser}'@'localhost' WITH GRANT OPTION`);
+              await conn.query(`CREATE USER IF NOT EXISTS '${safeUser}'@'%' IDENTIFIED BY '${pass}'`);
+              await conn.query(`GRANT ALL PRIVILEGES ON \`${name}\`.* TO '${safeUser}'@'%' WITH GRANT OPTION`);
+            }
+            logger.info(`Synced registered database "${name}" to MySQL.`);
+          } catch (createErr) {
+            logger.warn(`Failed to sync database "${name}" to MySQL: ${createErr.message}`);
+          }
+        }
+      }
+      await conn.query('FLUSH PRIVILEGES');
+      return true;
+    } catch (e) {
+      return false;
+    } finally {
+      if (conn) {
+        try { await conn.end(); } catch {}
+      }
     }
   }
 

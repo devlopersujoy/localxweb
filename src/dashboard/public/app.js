@@ -639,18 +639,22 @@ async function loadDatabases() {
     }
 
     if (!dbs || dbs.length === 0) {
-      container.innerHTML = '<p class="subtitle">No databases found. Make sure MySQL/MariaDB is running, then click "Create Database with Password".</p>';
+      container.innerHTML = '<p class="subtitle">No databases registered yet. Click "Create Database with Password" to add one.</p>';
       return;
     }
 
     let html = '';
     for (const db of dbs) {
+      const offlineBadge = db.mysqlOnline === false 
+        ? '<span style="font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.08);color:var(--text-secondary);margin-left:6px;font-weight:500;">JSON Registry (MySQL Offline)</span>' 
+        : '';
+
       html += `
         <div class="card db-card">
           <div class="db-info-group">
             <div class="service-icon mysql">DB</div>
             <div>
-              <div class="db-title">${db.name}</div>
+              <div class="db-title">${db.name} ${offlineBadge}</div>
               <div class="db-meta font-mono">${db.tables || 0} tables • ${db.sizeMB || 0} MB • utf8mb4</div>
             </div>
           </div>
@@ -677,7 +681,7 @@ async function loadDatabases() {
     }
     container.innerHTML = html;
   } catch (err) {
-    container.innerHTML = `<p class="status-pill missing">Error connecting to MySQL: ${err.message}. Make sure MySQL service is running.</p>`;
+    container.innerHTML = `<p class="status-pill missing">Error fetching databases: ${err.message}.</p>`;
   }
 }
 
@@ -731,7 +735,11 @@ async function submitCreateDatabase() {
     const data = await res.json();
     if (res.ok) {
       closeModal('modal-create-db');
-      showToast(`Database "${name}" created with credentials! ✔`);
+      if (data.mysqlSynced === false) {
+        showToast(`Database "${name}" saved in JSON registry (MySQL is offline)! ✔`);
+      } else {
+        showToast(`Database "${name}" created with credentials! ✔`);
+      }
       loadDatabases();
       showConnectionInfo(name);
     } else {
