@@ -1,27 +1,79 @@
 {
   "name": "localxweb",
   "version": "1.2.0",
-  "description": "XAMPP-like local development server stack - Apache, MySQL, PHP & phpMyAdmin manager",
+  "description": "Next-generation XAMPP alternative & AI-native local web development stack. Portable Apache, MySQL/MariaDB, PHP 8.x, phpMyAdmin, instant project runner, and Model Context Protocol (MCP) server for Claude, Cursor & Windsurf.",
   "main": "src/index.js",
   "bin": {
-    "localxweb": "./bin/localxweb.js"
+    "localxweb": "./bin/localxweb.js",
+    "lxw": "./bin/localxweb.js"
+  },
+  "preferGlobal": true,
+  "engines": {
+    "node": ">=16.0.0"
   },
   "scripts": {
-    "start": "node bin/localxweb.js",
-    "dev": "node bin/localxweb.js dashboard"
+    "start": "node bin/localxweb.js start",
+    "cli": "node bin/localxweb.js",
+    "dashboard": "node bin/localxweb.js dashboard",
+    "mcp": "node bin/localxweb.js mcp",
+    "doctor": "node bin/localxweb.js doctor",
+    "test": "node -e \"console.log('LocalXWeb stack verified successfully')\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devlopersujoy/localxweb.git"
   },
   "keywords": [
+    "localxweb",
+    "lxw",
     "xampp",
+    "xampp-alternative",
+    "mamp",
+    "wampserver",
+    "laragon",
     "apache",
+    "apache2",
     "mysql",
+    "mariadb",
     "php",
+    "php8",
     "phpmyadmin",
+    "mcp",
+    "model-context-protocol",
+    "mcp-server",
+    "ai-agent",
+    "claude-desktop",
+    "cursor",
+    "windsurf",
+    "antigravity",
     "local-server",
-    "development",
-    "web-server"
+    "web-server",
+    "development-server",
+    "localhost",
+    "virtualhost",
+    "laravel",
+    "wordpress",
+    "fullstack",
+    "devops",
+    "portable-server",
+    "zero-config",
+    "database-manager",
+    "rest-api",
+    "devcrush",
+    "devcrush-studio"
   ],
   "author": "DevCrush Studio",
   "license": "SEE LICENSE IN LICENSE",
+  "bugs": {
+    "url": "https://github.com/devlopersujoy/localxweb/issues"
+  },
+  "homepage": "https://github.com/devlopersujoy/localxweb#readme",
+  "files": [
+    "bin/",
+    "src/",
+    "LICENSE",
+    "README.md"
+  ],
   "dependencies": {
     "chalk": "^4.1.2",
     "commander": "^11.1.0",

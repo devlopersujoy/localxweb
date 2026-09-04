@@ -118,7 +118,7 @@ Install LocalXWeb globally with a single command:
 npm install -g localxweb
 ```
 
-> **⚡ Global Access**: Once installed, the `localxweb` command is instantly accessible across your entire system in any terminal, Command Prompt, PowerShell, or shell.
+> **⚡ Global Access**: Once installed, both `localxweb` and the short alias `lxw` are instantly accessible across your entire system in any terminal, Command Prompt, PowerShell, or shell.
 
 <details>
 <summary><b>🛠️ Alternative: Install from Source (Git Clone)</b></summary>
@@ -182,6 +182,7 @@ LocalXWeb includes an extensive CLI suite powered by `commander` and `chalk`:
 
 ```
 Usage: localxweb [command] [options]
+   Or: lxw [command] [options]
 ```
 
 ### 🟢 Service Management

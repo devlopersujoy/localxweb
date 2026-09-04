@@ -1,0 +1,15 @@
+# Tests & Scratch files
+tests/
+scratch/
+*.zip
+*.tar.gz
+*.tgz
+*.log
+
+# VCS & Editor configurations
+.git/
+.github/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
