@@ -132,7 +132,10 @@ class McpHttpServer {
               <pre>{
   "mcpServers": {
     "localxweb": {
-      "serverUrl": "${sseUrl}"${isAuth && apiKey ? `,\n      "headers": {\n        "Authorization": "Bearer ${apiKey}"\n      }` : ''}
+      "serverUrl": "${sseUrl}",
+      "headers": {
+        "Authorization": "Bearer ${apiKey}"
+      }
     }
   }
 }</pre>

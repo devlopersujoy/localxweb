@@ -1440,15 +1440,15 @@ function renderMcpSnippet() {
   const pathEl = document.getElementById('mcp-target-path');
   const targetPath = mcpState.info.clientPaths ? mcpState.info.clientPaths[client] : '';
 
-  const isAuth = mcpState.authRequired;
-  const key = mcpState.apiKey;
-  const sseUrl = isAuth && key ? `http://localhost:9900/sse?apiKey=${encodeURIComponent(key)}` : `http://localhost:9900/sse`;
+  const key = mcpState.apiKey || (mcpState.info && mcpState.info.apiKey) || '';
+  const port = (mcpState.info && mcpState.info.port) || 9900;
+  const sseUrl = key ? `http://localhost:${port}/sse?apiKey=${encodeURIComponent(key)}` : `http://localhost:${port}/sse`;
 
   const serverObj = {
     serverUrl: sseUrl
   };
 
-  if (isAuth && key) {
+  if (key) {
     serverObj.headers = {
       Authorization: `Bearer ${key}`
     };

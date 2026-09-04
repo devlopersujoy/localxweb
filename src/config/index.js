@@ -66,6 +66,13 @@ class Config {
       try { this.save(); } catch {}
     }
 
+    // Ensure real mcpApiKey always exists in config.json (not in SQL database)
+    if (!this._config.mcpApiKey) {
+      const crypto = require('crypto');
+      this._config.mcpApiKey = 'lxw_' + crypto.randomBytes(16).toString('hex');
+      try { this.save(); } catch {}
+    }
+
     // Auto-adjust ports below 1024 for non-root users on Linux/macOS
     if (isNonRootPosix && this._config) {
       if (this._config.dashboardPort < 1024) this._config.dashboardPort = 9898;

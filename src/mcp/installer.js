@@ -39,20 +39,16 @@ function getClientConfigPaths() {
  */
 function getLocalXWebMcpConfig(mode = 'sse', port = 9900) {
   const config = require('../config');
-  const isAuth = !!config.get('mcpAuthEnabled');
-  const apiKey = config.get('mcpApiKey');
+  const apiKey = config.getMcpApiKey();
 
   if (mode === 'sse') {
-    const sseUrl = isAuth && apiKey ? `http://localhost:${port}/sse?apiKey=${apiKey}` : `http://localhost:${port}/sse`;
-    const mcpObj = {
-      serverUrl: sseUrl
-    };
-    if (isAuth && apiKey) {
-      mcpObj.headers = {
+    const sseUrl = `http://localhost:${port}/sse?apiKey=${apiKey}`;
+    return {
+      serverUrl: sseUrl,
+      headers: {
         Authorization: `Bearer ${apiKey}`
-      };
-    }
-    return mcpObj;
+      }
+    };
   }
 
   const binPath = path.resolve(__dirname, '../../bin/localxweb.js');

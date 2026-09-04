@@ -446,14 +446,16 @@ router.get('/mcp/info', (req, res) => {
   const { LocalXWebMcpServer, getLocalXWebMcpConfig, getClientConfigPaths } = require('../mcp');
   const server = new LocalXWebMcpServer({ services, dbManager, sitesManager });
   const isAuth = !!config.get('mcpAuthEnabled');
-  const apiKey = config.get('mcpApiKey') || config.getMcpApiKey();
+  const apiKey = config.getMcpApiKey();
+  const mcpPort = config.get('mcpPort') || 9900;
 
   res.json({
     version: '1.2.0',
     protocolVersion: '2024-11-05',
+    port: mcpPort,
     authRequired: isAuth,
     apiKey: apiKey,
-    mcpConfig: getLocalXWebMcpConfig(),
+    mcpConfig: getLocalXWebMcpConfig('sse', mcpPort),
     clientPaths: getClientConfigPaths(),
     toolsCount: server.tools.length,
     resourcesCount: server.resources.length,
