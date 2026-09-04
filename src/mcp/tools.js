@@ -622,6 +622,157 @@ function createMcpTools(context) {
           return { service, error: e.message };
         }
       }
+    },
+
+    // 23. Test Local HTTP Endpoint
+    {
+      name: 'localxweb_test_endpoint',
+      description: 'Send an HTTP request to a local PHP site or API endpoint hosted on LocalXWeb and inspect the response',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          path: {
+            type: 'string',
+            description: 'Relative path or URL to test (e.g. "/index.php", "/my-app/api.php", or "http://localhost:80/...")'
+          },
+          method: {
+            type: 'string',
+            description: 'HTTP method (GET, POST, PUT, DELETE)',
+            enum: ['GET', 'POST', 'PUT', 'DELETE'],
+            default: 'GET'
+          },
+          body: {
+            type: 'string',
+            description: 'Optional request body string (JSON, form-encoded, or raw text)'
+          },
+          headers: {
+            type: 'object',
+            description: 'Optional custom headers key-value map'
+          }
+        },
+        required: ['path']
+      },
+      handler: async ({ path: reqPath, method = 'GET', body = null, headers = {} }) => {
+        const http = require('http');
+        const apachePort = apache.port || config.get('apache')?.port || 80;
+        let urlStr = reqPath;
+        if (!urlStr.startsWith('http://') && !urlStr.startsWith('https://')) {
+          if (!urlStr.startsWith('/')) urlStr = '/' + urlStr;
+          urlStr = `http://127.0.0.1:${apachePort}${urlStr}`;
+        }
+        const parsedUrl = new URL(urlStr);
+        return new Promise((resolve) => {
+          const startTime = Date.now();
+          const reqHeaders = {
+            'User-Agent': 'LocalXWeb-MCP-Client/1.0',
+            ...headers
+          };
+          if (body && !reqHeaders['Content-Type']) {
+            reqHeaders['Content-Type'] = 'application/json';
+          }
+          if (body && !reqHeaders['Content-Length']) {
+            reqHeaders['Content-Length'] = Buffer.byteLength(body);
+          }
+          const options = {
+            hostname: parsedUrl.hostname,
+            port: parsedUrl.port || 80,
+            path: parsedUrl.pathname + parsedUrl.search,
+            method: method.toUpperCase(),
+            headers: reqHeaders,
+            timeout: 10000
+          };
+          const req = http.request(options, (res) => {
+            let data = '';
+            res.on('data', chunk => { data += chunk; });
+            res.on('end', () => {
+              const durationMs = Date.now() - startTime;
+              let parsedJson = null;
+              if (res.headers['content-type'] && res.headers['content-type'].includes('application/json')) {
+                try { parsedJson = JSON.parse(data); } catch (_) {}
+              }
+              resolve({
+                success: res.statusCode >= 200 && res.statusCode < 400,
+                url: urlStr,
+                statusCode: res.statusCode,
+                statusMessage: res.statusMessage,
+                headers: res.headers,
+                durationMs,
+                body: parsedJson || (data.length > 2000 ? data.slice(0, 2000) + '... [truncated]' : data)
+              });
+            });
+          });
+          req.on('error', (err) => {
+            resolve({
+              success: false,
+              url: urlStr,
+              error: err.message,
+              durationMs: Date.now() - startTime
+            });
+          });
+          req.on('timeout', () => {
+            req.destroy();
+            resolve({
+              success: false,
+              url: urlStr,
+              error: 'Request timed out after 10000ms',
+              durationMs: Date.now() - startTime
+            });
+          });
+          if (body) {
+            req.write(body);
+          }
+          req.end();
+        });
+      }
+    },
+
+    // 24. Enable PHP Extension
+    {
+      name: 'localxweb_enable_extension',
+      description: 'Check and enable a PHP extension in php.ini (e.g. mysqli, pdo_mysql, curl, gd, mbstring, intl, zip)',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          extension: {
+            type: 'string',
+            description: 'Name of the PHP extension to enable (e.g. "mysqli", "pdo_mysql", "curl", "gd", "zip")'
+          }
+        },
+        required: ['extension']
+      },
+      handler: async ({ extension }) => {
+        const extName = extension.trim().toLowerCase().replace(/^php_/, '').replace(/\.dll$/, '').replace(/\.so$/, '');
+        const phpIni = platform.phpIniFile;
+        if (!fs.existsSync(phpIni)) {
+          return { success: false, error: `php.ini file not found at ${phpIni}` };
+        }
+        let content = fs.readFileSync(phpIni, 'utf8');
+        const regex = new RegExp(`^[;\\s]*extension\\s*=\\s*["']?(${extName}|php_${extName})(\\.dll|\\.so)?["']?`, 'mi');
+        let modified = false;
+        if (regex.test(content)) {
+          content = content.replace(regex, `extension=${extName}`);
+          modified = true;
+        } else {
+          content += `\nextension=${extName}\n`;
+          modified = true;
+        }
+        if (modified) {
+          fs.writeFileSync(phpIni, content, 'utf8');
+        }
+        let restartStatus = 'unchanged';
+        if (await apache.status() === 'running') {
+          await apache.restart();
+          restartStatus = 'apache_restarted';
+        }
+        return {
+          success: true,
+          extension: extName,
+          phpIniPath: phpIni,
+          action: modified ? 'enabled_in_php_ini' : 'already_enabled',
+          webServerAction: restartStatus,
+          loadedExtensions: php.getLoadedExtensions()
+        };
+      }
     }
   ];
 
