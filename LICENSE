@@ -1,0 +1,84 @@
+PROPRIETARY SOFTWARE LICENSE AND END USER LICENSE AGREEMENT (EULA)
+
+Product: LocalXWeb
+Owner / Copyright Holder: DevCrush Studio
+License Type: Proprietary Software License / EULA
+Copyright: © 2026 DevCrush Studio. All rights reserved.
+
+IMPORTANT: PLEASE READ THIS SOFTWARE LICENSE AGREEMENT CAREFULLY BEFORE DOWNLOADING,
+INSTALLING, COPYING, OR USING THIS SOFTWARE.
+
+BY DOWNLOADING, INSTALLING, COPYING, OR OTHERWISE USING LOCALXWEB, YOU AGREE TO BE BOUND
+BY THE TERMS OF THIS PROPRIETARY SOFTWARE LICENSE AGREEMENT. IF YOU DO NOT AGREE TO THE
+TERMS OF THIS AGREEMENT, DO NOT DOWNLOAD, INSTALL, OR USE LOCALXWEB.
+
+================================================================================
+1. OWNERSHIP & INTELLECTUAL PROPERTY
+================================================================================
+LocalXWeb (the "Software"), including all source code, documentation, designs, logos,
+user interfaces, scripts, and assets, is owned exclusively by DevCrush Studio and is
+protected by international copyright laws, trade secrets, and intellectual property treaties.
+All title, ownership rights, and intellectual property rights in and to the Software remain
+with DevCrush Studio.
+
+================================================================================
+2. GRANT OF LICENSE
+================================================================================
+DevCrush Studio grants you a personal, revocable, non-exclusive, non-transferable,
+limited license to install, execute, and use LocalXWeb strictly for local web development,
+testing, and server management purposes in accordance with the terms of this Agreement.
+
+================================================================================
+3. RESTRICTIONS ON USE
+================================================================================
+You shall NOT, and shall NOT allow any third party to:
+a. Modify, translate, adapt, alter, reverse engineer, decompile, disassemble, or attempt
+   to derive source code from any proprietary portion of the Software;
+b. Resell, rent, lease, lend, sublicense, distribute, assign, host as a commercial cloud
+   service, or commercially exploit the Software without explicit prior written authorization
+   from DevCrush Studio;
+c. Remove, alter, or obscure any proprietary copyright notices, trademarks, digital watermarks,
+   or legal attributions of DevCrush Studio;
+d. Use the Software for any unauthorized, fraudulent, malicious, or unlawful purpose.
+
+================================================================================
+4. THIRD-PARTY COMPONENTS & OPEN-SOURCE RUNTIMES
+================================================================================
+LocalXWeb orchestrates, downloads, and configures third-party open-source components
+(including Apache HTTP Server, MariaDB/MySQL, PHP, and phpMyAdmin). These third-party
+components remain the property of their respective owners and are governed by their
+respective open-source licenses (Apache 2.0, GPL v2, PHP License). Nothing in this
+Agreement restricts or overrides rights granted to you under those specific third-party
+licenses for those standalone binaries.
+
+================================================================================
+5. TERMINATION
+================================================================================
+This License is effective until terminated. Your rights under this License terminate
+automatically without notice from DevCrush Studio if you fail to comply with any term(s)
+of this Agreement. Upon termination, you must destroy all copies of the Software in your
+possession or control.
+
+================================================================================
+6. DISCLAIMER OF WARRANTIES
+================================================================================
+THE SOFTWARE IS PROVIDED "AS IS" AND "AS AVAILABLE", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, COMPATIBILITY, AND NON-INFRINGEMENT. DEVCRUSH STUDIO
+DOES NOT WARRANT THAT THE SOFTWARE WILL OPERATE UNINTERRUPTED OR ERROR-FREE.
+
+================================================================================
+7. LIMITATION OF LIABILITY
+================================================================================
+IN NO EVENT SHALL DEVCRUSH STUDIO BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, LOSS OF
+DATA, LOSS OF PROFITS, BUSINESS INTERRUPTION, OR SYSTEM DOWNTIME) ARISING OUT OF THE USE
+OR INABILITY TO USE THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+================================================================================
+8. COPYRIGHT NOTICE
+================================================================================
+Copyright © 2026 DevCrush Studio. All rights reserved.
+
+For licensing inquiries, permissions, or commercial distribution requests:
+DevCrush Studio (https://github.com/devlopersujoy/localxweb)

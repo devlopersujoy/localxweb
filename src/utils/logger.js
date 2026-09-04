@@ -15,8 +15,9 @@ const logger = {
   banner: () => {
     console.log('');
     console.log(chalk.cyan.bold('  ╔══════════════════════════════════════╗'));
-    console.log(chalk.cyan.bold('  ║') + chalk.white.bold('         LocalXWeb Server v1.0        ') + chalk.cyan.bold('║'));
+    console.log(chalk.cyan.bold('  ║') + chalk.white.bold('         LocalXWeb Server v1.2        ') + chalk.cyan.bold('║'));
     console.log(chalk.cyan.bold('  ║') + chalk.gray('   Apache · MySQL · PHP · phpMyAdmin  ') + chalk.cyan.bold('║'));
+    console.log(chalk.cyan.bold('  ║') + chalk.cyan('        © 2026 DevCrush Studio        ') + chalk.cyan.bold('║'));
     console.log(chalk.cyan.bold('  ╚══════════════════════════════════════╝'));
     console.log('');
   },

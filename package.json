@@ -20,8 +20,8 @@
     "development",
     "web-server"
   ],
-  "author": "",
-  "license": "MIT",
+  "author": "DevCrush Studio",
+  "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
     "chalk": "^4.1.2",
     "commander": "^11.1.0",

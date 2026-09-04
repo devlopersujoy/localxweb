@@ -4,7 +4,8 @@
 
 ![LocalXWeb Logo](https://img.shields.io/badge/LocalXWeb-v1.2.0-0ea5e9?style=for-the-badge&logo=apache&logoColor=white)
 [![npm install](https://img.shields.io/badge/npm-npm%20install%20--g%20localxweb-cb3837?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/localxweb)
-[![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg?style=for-the-badge)](LICENSE)
+[![License: Proprietary](https://img.shields.io/badge/License-Proprietary%20%2F%20EULA-crimson.svg?style=for-the-badge)](LICENSE)
+[![Copyright](https://img.shields.io/badge/Copyright-%C2%A9%202026%20DevCrush%20Studio-blue.svg?style=for-the-badge)](https://github.com/devlopersujoy/localxweb)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux%20%7C%20Termux-blueviolet?style=for-the-badge)](https://github.com/devlopersujoy/localxweb)
 [![MCP Supported](https://img.shields.io/badge/MCP-27%20Tools%20%7C%2014%20Prompts%20%7C%20SSE%20%26%20Stdio-amber?style=for-the-badge)](https://modelcontextprotocol.io)
 
@@ -542,15 +543,26 @@ Open the Control Center at <a href="http://localhost:98/Control-Center">http://l
 
 ---
 
-## 📄 License
+## 📄 License & Copyright
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+**LocalXWeb** is proprietary software owned and developed by **DevCrush Studio**.
+
+```text
+Product: LocalXWeb
+Owner / Copyright Holder: DevCrush Studio
+License Type: Proprietary Software License / EULA
+Copyright: © 2026 DevCrush Studio. All rights reserved.
+```
+
+This software is governed by the **DevCrush Studio Proprietary Software License and End User License Agreement (EULA)**. Unauthorized copying, reverse engineering, redistribution, or sublicensing of this software, in source or binary forms, is strictly prohibited without express prior written permission from DevCrush Studio.
+
+See the full [LICENSE](LICENSE) file for complete terms and conditions.
 
 ---
 
 <div align="center">
 
-**Built with ❤️ for modern developers and AI-assisted workflows.**  
-*Star ⭐ this repository on GitHub if you love LocalXWeb!*
+**LocalXWeb** • Built with ❤️ by **DevCrush Studio**  
+*Copyright © 2026 DevCrush Studio. All rights reserved.*
 
 </div>
