@@ -719,6 +719,30 @@ try {
               </div>
             </div>
 
+            <div class="card" id="card-engine-selection">
+              <div class="card-title">Server Engines & GUI (Windows & Linux)</div>
+              <p class="subtitle" style="margin-bottom: 12px;">Switch between Native binaries and LocalXWeb Universal Engines.</p>
+              <div class="form-group">
+                <label>Web Server Engine</label>
+                <select id="setting-web-engine" class="form-input">
+                  <option value="apache">Apache HTTP Server (Native)</option>
+                  <option value="node">LocalXWeb Universal Web Server (Node.js Engine)</option>
+                </select>
+                <small id="web-engine-note">Select which web server powers port 80/8080</small>
+              </div>
+              <div class="form-group">
+                <label>Database Manager GUI</label>
+                <select id="setting-db-gui" class="form-input">
+                  <option value="phpmyadmin">phpMyAdmin Client (Native)</option>
+                  <option value="studio">LocalXWeb Database Studio (Built-in)</option>
+                </select>
+                <small id="db-gui-note">Select which database interface runs on port 9999</small>
+              </div>
+              <div id="engine-termux-notice" style="display: none; padding: 10px 14px; background: rgba(56, 189, 248, 0.1); border-left: 3px solid #38bdf8; border-radius: 6px; font-size: 0.8rem; color: #94a3b8; margin-top: 10px;">
+                ℹ Locked to Universal Node Engine &amp; Database Studio on Termux and GitHub Codespaces to prevent memory crashes.
+              </div>
+            </div>
+
             <div class="card">
               <div class="card-title">Security & MCP Access</div>
               <div class="form-group">

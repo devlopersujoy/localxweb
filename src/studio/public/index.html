@@ -16,7 +16,7 @@
         <div class="brand">
           <img src="/localxweb.png" alt="Logo" class="brand-logo" onerror="this.style.display='none'">
           <span class="brand-title">LocalXWeb <strong>Database Studio</strong></span>
-          <span class="badge badge-subtle">phpMyAdmin Mode</span>
+          <span class="badge badge-accent">phpMyAdmin Pro Suite</span>
         </div>
       </div>
       <div class="header-center">
@@ -26,7 +26,7 @@
         </div>
       </div>
       <div class="header-right">
-        <button id="btnQuickSql" class="btn btn-primary btn-sm">⚡ SQL Query</button>
+        <button id="btnQuickSql" class="btn btn-primary btn-sm">⚡ SQL Console</button>
         <button id="btnRefresh" class="btn btn-secondary btn-sm" title="Reload data">⟳ Refresh</button>
         <a href="http://localhost:9898" id="linkDashboard" class="btn btn-outline btn-sm" target="_blank">Dashboard ↗</a>
       </div>
@@ -41,6 +41,13 @@
             <input type="text" id="dbSearchInput" placeholder="Filter databases..." autocomplete="off">
           </div>
           <button id="btnNewDb" class="btn btn-primary btn-xs" title="Create new database">+ New DB</button>
+        </div>
+        <div class="sidebar-server-links">
+          <button class="server-link-btn" id="sidebarServerHome">🏠 Server: 127.0.0.1</button>
+          <div class="server-quick-links">
+            <button class="quick-link-btn" id="sidebarLinkProcesses" title="Active Queries">📊 Processes</button>
+            <button class="quick-link-btn" id="sidebarLinkUsers" title="MySQL Privileges">👥 Users</button>
+          </div>
         </div>
         <div class="db-tree-container" id="dbTree">
           <div class="loading-state">Loading databases...</div>
@@ -59,46 +66,73 @@
 
         <!-- Navigation Tabs -->
         <div class="tab-nav" id="tabNav" style="display: none;">
+          <button class="tab-btn" data-tab="server" id="tabBtnServer">🏠 Overview</button>
+          <button class="tab-btn" data-tab="database" id="tabBtnDatabase">🗄️ Tables</button>
           <button class="tab-btn active" data-tab="browse" id="tabBtnBrowse">📄 Browse</button>
           <button class="tab-btn" data-tab="structure" id="tabBtnStructure">📐 Structure</button>
           <button class="tab-btn" data-tab="sql" id="tabBtnSql">⚡ SQL</button>
+          <button class="tab-btn" data-tab="search" id="tabBtnSearch">🔍 Search</button>
           <button class="tab-btn" data-tab="insert" id="tabBtnInsert">➕ Insert</button>
+          <button class="tab-btn" data-tab="operations" id="tabBtnOperations">⚙️ Operations</button>
           <button class="tab-btn" data-tab="export" id="tabBtnExport">📤 Export</button>
           <button class="tab-btn" data-tab="import" id="tabBtnImport">📥 Import</button>
+          <button class="tab-btn" data-tab="processes" id="tabBtnProcesses">📊 Processes</button>
+          <button class="tab-btn" data-tab="users" id="tabBtnUsers">👥 Users</button>
         </div>
 
         <!-- Tab Views -->
         <div class="tab-content" id="tabContent">
-          <!-- Server Overview View -->
+          <!-- 1. Server Overview View -->
           <section id="viewServer" class="view-panel active">
             <div class="dashboard-grid">
-              <div class="card">
+              <div class="card glass-card">
                 <h3>🚀 MySQL / MariaDB Server</h3>
                 <table class="info-table">
                   <tr><td>Server:</td><td id="srvHost">127.0.0.1:3306</td></tr>
                   <tr><td>Server Version:</td><td id="srvVer">-</td></tr>
                   <tr><td>User:</td><td>root@127.0.0.1</td></tr>
+                  <tr><td>Uptime:</td><td id="srvUptime">-</td></tr>
+                  <tr><td>Active Threads:</td><td id="srvThreads">-</td></tr>
+                  <tr><td>Total Queries:</td><td id="srvQueries">-</td></tr>
                   <tr><td>Web Studio Port:</td><td id="srvPort">9999</td></tr>
                   <tr><td>Status:</td><td><span class="badge badge-success">Online &amp; Responsive</span></td></tr>
                 </table>
               </div>
 
-              <div class="card">
+              <div class="card glass-card">
                 <h3>⚡ Quick Actions</h3>
                 <div class="quick-actions-grid">
                   <button class="btn btn-secondary" id="qaNewDb">➕ Create New Database</button>
                   <button class="btn btn-secondary" id="qaRunSql">📝 Run Arbitrary SQL Query</button>
+                  <button class="btn btn-secondary" id="qaProcesses">📊 Show Server Processes (Kill Queries)</button>
+                  <button class="btn btn-secondary" id="qaUsers">👥 Manage MySQL Users &amp; Privileges</button>
                   <button class="btn btn-secondary" id="qaExportAll">📦 Export All Databases</button>
                 </div>
               </div>
             </div>
 
-            <div class="card mt-4">
-              <h3>🗄️ Databases (<span id="serverDbCount">0</span>)</h3>
-              <div class="table-responsive">
+            <div class="card glass-card mt-4">
+              <div class="card-header-flex">
+                <h3>🗄️ Databases (<span id="serverDbCount">0</span>)</h3>
+                <div class="flex-gap">
+                  <button class="btn btn-danger btn-xs" id="btnDeleteAllDbs" title="Drop all user databases">🗑️ Delete All Databases</button>
+                  <button class="btn btn-primary btn-xs" id="btnServerNewDb">+ New Database</button>
+                </div>
+              </div>
+
+              <!-- Floating Multi-DB Bulk Actions Bar -->
+              <div class="bulk-actions-bar" id="bulkDbActionsBar" style="display: none;">
+                <span id="bulkSelectedDbCount" class="font-bold">0 databases selected</span>
+                <button class="btn btn-danger btn-xs" id="btnBulkDropDbs">🗑️ Drop Selected</button>
+                <button class="btn btn-warning btn-xs" id="btnBulkEmptyDbs">⚠️ Empty (Truncate)</button>
+                <button class="btn btn-secondary btn-xs" id="btnBulkDeselectDbs">Clear Selection</button>
+              </div>
+
+              <div class="table-responsive mt-2">
                 <table class="data-table" id="serverDbsTable">
                   <thead>
                     <tr>
+                      <th style="width: 36px; text-align: center;"><input type="checkbox" id="checkAllDbs"></th>
                       <th>Database Name</th>
                       <th>Tables</th>
                       <th>Size</th>
@@ -106,48 +140,85 @@
                     </tr>
                   </thead>
                   <tbody id="serverDbsTbody">
-                    <tr><td colspan="4" class="text-center text-muted">Loading databases...</td></tr>
+                    <tr><td colspan="5" class="text-center text-muted">Loading databases...</td></tr>
                   </tbody>
                 </table>
               </div>
             </div>
           </section>
 
-          <!-- Database Overview View (Tables list) -->
+          <!-- 2. Database Overview View (Tables list & Storage stats) -->
           <section id="viewDatabase" class="view-panel">
             <div class="view-header">
               <h2 id="dbViewTitle">Database: <em>none</em></h2>
               <div class="view-actions">
                 <button class="btn btn-primary btn-sm" id="btnCreateTableModal">+ Create Table</button>
+                <button class="btn btn-warning btn-sm" id="btnTruncateAllTables" title="Truncate all tables in database">⚠️ Empty All Tables</button>
+                <button class="btn btn-danger btn-sm" id="btnDropAllTablesInDb" title="Drop all tables in database">🗑️ Drop All Tables</button>
+                <button class="btn btn-secondary btn-sm" id="btnDbOpsShortcut">⚙️ Operations</button>
                 <button class="btn btn-danger btn-sm" id="btnDropDb">Drop Database</button>
               </div>
             </div>
-            <div class="card mt-2">
+
+            <!-- Floating Multi-Table Bulk Actions Bar -->
+            <div class="bulk-actions-bar" id="bulkTableActionsBar" style="display: none;">
+              <span id="bulkSelectedTableCount" class="font-bold">0 tables selected</span>
+              <button class="btn btn-danger btn-xs" id="btnBulkDropTables">🗑️ Drop Selected</button>
+              <button class="btn btn-warning btn-xs" id="btnBulkTruncateTables">⚠️ Empty (Truncate)</button>
+              <button class="btn btn-secondary btn-xs" id="btnBulkOptimizeTables">⚡ Optimize</button>
+              <button class="btn btn-secondary btn-xs" id="btnBulkCheckTables">🔍 Check</button>
+              <button class="btn btn-secondary btn-xs" id="btnBulkDeselectTables">Clear Selection</button>
+            </div>
+
+            <!-- Tables Table Card -->
+            <div class="card glass-card mt-2">
               <div class="table-responsive">
                 <table class="data-table" id="dbTablesTable">
                   <thead>
                     <tr>
+                      <th style="width: 36px; text-align: center;"><input type="checkbox" id="checkAllTables"></th>
                       <th>Table</th>
                       <th>Engine</th>
+                      <th>Collation</th>
                       <th>Rows</th>
-                      <th>Size</th>
+                      <th>Data Size</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody id="dbTablesTbody">
-                    <tr><td colspan="5" class="text-center text-muted">Loading tables...</td></tr>
+                    <tr><td colspan="7" class="text-center text-muted">Loading tables...</td></tr>
                   </tbody>
                 </table>
               </div>
             </div>
+
+
+            <!-- Storage Visual Breakdown Card -->
+            <div class="card glass-card mt-4" id="cardDbStorageStats">
+              <h4>📊 Storage Distribution &amp; Statistics</h4>
+              <div class="stats-summary-row mt-2" id="statsSummaryRow"></div>
+              <div class="storage-bars-container mt-3" id="storageBarsContainer"></div>
+            </div>
           </section>
 
-          <!-- Table Browse View -->
+          <!-- 3. Table Browse View -->
           <section id="viewBrowse" class="view-panel">
             <div class="browse-toolbar">
-              <div class="pagination-info" id="paginationInfo">Showing 0-0 of 0 rows</div>
+              <div class="toolbar-left">
+                <div class="pagination-info" id="paginationInfo">Showing 0-0 of 0 rows</div>
+                <div class="limit-selector">
+                  <label for="browseLimitSelect">Rows:</label>
+                  <select id="browseLimitSelect" class="form-control-sm">
+                    <option value="10">10</option>
+                    <option value="25" selected>25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="250">250</option>
+                  </select>
+                </div>
+              </div>
               <div class="search-box sm">
-                <input type="text" id="browseSearchInput" placeholder="Filter rows...">
+                <input type="text" id="browseSearchInput" placeholder="Instant filter across rows...">
               </div>
               <div class="pagination-controls" id="paginationControls">
                 <button class="btn btn-xs btn-outline" id="btnPrevPage">◀ Prev</button>
@@ -155,7 +226,15 @@
                 <button class="btn btn-xs btn-outline" id="btnNextPage">Next ▶</button>
               </div>
             </div>
-            <div class="card p-0 mt-2">
+
+            <!-- Floating Multi-Row Bulk Actions Bar -->
+            <div class="bulk-actions-bar" id="bulkActionsBar" style="display: none;">
+              <span id="bulkSelectedCount" class="font-bold">0 rows selected</span>
+              <button class="btn btn-danger btn-xs" id="btnBulkDelete">🗑️ Delete Selected</button>
+              <button class="btn btn-secondary btn-xs" id="btnBulkDeselect">Clear Selection</button>
+            </div>
+
+            <div class="card glass-card p-0 mt-2">
               <div class="table-responsive browse-scroll" id="browseTableContainer">
                 <table class="data-table selectable" id="browseDataTable">
                   <thead id="browseThead"></thead>
@@ -167,55 +246,98 @@
             </div>
           </section>
 
-          <!-- Table Structure View -->
+          <!-- 4. Table Structure View -->
           <section id="viewStructure" class="view-panel">
             <div class="view-header">
-              <h3>Schema &amp; Columns</h3>
+              <h3>📐 Schema &amp; Columns</h3>
+              <div class="view-actions">
+                <button class="btn btn-primary btn-sm" id="btnOpenAddColumnModal">➕ Add Column</button>
+                <button class="btn btn-secondary btn-sm" id="btnOpenAddIndexModal">🔑 Add Index</button>
+              </div>
             </div>
-            <div class="card mt-2">
-              <div class="table-responsive">
+
+            <div class="card glass-card mt-2">
+              <h4>Table Columns</h4>
+              <div class="table-responsive mt-1">
                 <table class="data-table" id="structureTable">
                   <thead>
                     <tr>
                       <th>#</th>
                       <th>Field</th>
                       <th>Type</th>
+                      <th>Collation</th>
                       <th>Null</th>
                       <th>Key</th>
                       <th>Default</th>
                       <th>Extra</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody id="structureTbody"></tbody>
                 </table>
               </div>
             </div>
+
+            <div class="card glass-card mt-4">
+              <h4>Indexes &amp; Keys</h4>
+              <div class="table-responsive mt-1">
+                <table class="data-table" id="indexesTable">
+                  <thead>
+                    <tr>
+                      <th>Key Name</th>
+                      <th>Type</th>
+                      <th>Column</th>
+                      <th>Unique</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="indexesTbody">
+                    <tr><td colspan="5" class="text-center text-muted">No indexes</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Table Metadata Card -->
+            <div class="card glass-card mt-4" id="tableMetaCard">
+              <h4>Information &amp; Status</h4>
+              <div class="meta-stats-grid" id="tableMetaStats"></div>
+            </div>
           </section>
 
-          <!-- SQL Query View -->
+          <!-- 5. SQL Query View -->
           <section id="viewSql" class="view-panel">
-            <div class="card">
+            <div class="card glass-card">
               <div class="sql-editor-header">
                 <h3>Run SQL Query on: <code id="sqlTargetDb">server</code></h3>
                 <div class="sql-snippets">
-                  <button class="btn-snippet" data-sql="SELECT * FROM \`TABLE\` LIMIT 25;">SELECT</button>
-                  <button class="btn-snippet" data-sql="INSERT INTO \`TABLE\` () VALUES ();">INSERT</button>
-                  <button class="btn-snippet" data-sql="UPDATE \`TABLE\` SET \`col\` = 'val' WHERE \`id\` = 1;">UPDATE</button>
-                  <button class="btn-snippet" data-sql="DELETE FROM \`TABLE\` WHERE \`id\` = 1;">DELETE</button>
+                  <button class="btn-snippet" data-sql="SELECT * FROM `TABLE` LIMIT 25;">SELECT</button>
+                  <button class="btn-snippet" data-sql="INSERT INTO `TABLE` () VALUES ();">INSERT</button>
+                  <button class="btn-snippet" data-sql="UPDATE `TABLE` SET `col` = 'val' WHERE `id` = 1;">UPDATE</button>
+                  <button class="btn-snippet" data-sql="DELETE FROM `TABLE` WHERE `id` = 1;">DELETE</button>
                   <button class="btn-snippet" data-sql="SHOW TABLES;">SHOW TABLES</button>
+                  <button class="btn-snippet" data-sql="SHOW PROCESSLIST;">PROCESSLIST</button>
                 </div>
               </div>
-              <textarea id="sqlQueryInput" class="sql-textarea" rows="6" spellcheck="false" placeholder="Enter SQL query here..."></textarea>
+              <textarea id="sqlQueryInput" class="sql-textarea" rows="7" spellcheck="false" placeholder="Enter SQL query here..."></textarea>
               <div class="sql-actions">
                 <button id="btnExecuteSql" class="btn btn-primary">▶ Execute Query (Ctrl+Enter)</button>
+                <button id="btnExplainSql" class="btn btn-secondary">🔍 Explain Query</button>
+                <button id="btnFormatSql" class="btn btn-secondary">✨ Format SQL</button>
                 <button id="btnClearSql" class="btn btn-outline btn-sm">Clear</button>
                 <span id="queryTimer" class="text-muted ml-auto"></span>
               </div>
             </div>
 
             <!-- SQL Results Area -->
-            <div class="card mt-3" id="sqlResultsCard" style="display: none;">
-              <h3 id="sqlResultsTitle">Query Results</h3>
+            <div class="card glass-card mt-3" id="sqlResultsCard" style="display: none;">
+              <div class="card-header-flex">
+                <h3 id="sqlResultsTitle">Query Results</h3>
+                <div class="flex-gap" id="sqlExportGroup" style="display: none;">
+                  <button class="btn btn-xs btn-outline" id="btnExportSqlCsv">📥 Export CSV</button>
+                  <button class="btn btn-xs btn-outline" id="btnExportSqlJson">📥 Export JSON</button>
+                </div>
+              </div>
               <div class="table-responsive mt-2">
                 <table class="data-table" id="sqlResultsTable">
                   <thead id="sqlResultsThead"></thead>
@@ -223,15 +345,66 @@
                 </table>
               </div>
             </div>
+
+            <!-- SQL History Card -->
+            <div class="card glass-card mt-3" id="sqlHistoryCard">
+              <h4>Recent Query History</h4>
+              <div id="sqlHistoryList" class="sql-history-list">
+                <span class="text-muted text-sm">No recent queries executed in this session.</span>
+              </div>
+            </div>
           </section>
 
-          <!-- Insert Row View -->
+          <!-- 6. Search in Database View (phpMyAdmin Search) -->
+          <section id="viewSearch" class="view-panel">
+            <div class="card glass-card">
+              <h3>🔍 Search in Database: <code id="searchDbTarget"></code></h3>
+              <p class="text-muted text-xs">Search for words, numbers or values across text/char columns in all or selected tables.</p>
+
+              <div class="form-grid mt-3">
+                <div class="form-group">
+                  <label><strong>Search Query:</strong></label>
+                  <input type="text" id="dbSearchTerm" class="form-control" placeholder="Search term, email, keyword...">
+                </div>
+                <div class="form-group">
+                  <label><strong>Tables to Search:</strong></label>
+                  <div class="flex-gap">
+                    <button type="button" class="btn btn-xs btn-secondary" id="btnSelectAllSearchTables">Select All</button>
+                    <button type="button" class="btn btn-xs btn-secondary" id="btnDeselectAllSearchTables">Deselect All</button>
+                  </div>
+                  <div id="searchTablesList" class="checkbox-list mt-2" style="max-height: 160px;"></div>
+                </div>
+              </div>
+
+              <div class="mt-3">
+                <button id="btnRunDbSearch" class="btn btn-primary">🔍 Find in Database</button>
+              </div>
+            </div>
+
+            <div class="card glass-card mt-3" id="cardSearchResults" style="display: none;">
+              <h4>Search Results</h4>
+              <div class="table-responsive mt-2">
+                <table class="data-table" id="searchResultsTable">
+                  <thead>
+                    <tr>
+                      <th>Table Name</th>
+                      <th>Matches Found</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="searchResultsTbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- 7. Insert Row View -->
           <section id="viewInsert" class="view-panel">
-            <div class="card">
+            <div class="card glass-card">
               <h3>Insert New Row into: <code id="insertTableTitle"></code></h3>
               <form id="insertRowForm" class="mt-3">
                 <div id="insertFormFields" class="form-grid"></div>
-                <div class="mt-4">
+                <div class="mt-4 flex-gap">
                   <button type="submit" class="btn btn-primary">Save Row</button>
                   <button type="button" class="btn btn-secondary" id="btnCancelInsert">Cancel</button>
                 </div>
@@ -239,28 +412,164 @@
             </div>
           </section>
 
-          <!-- Export View -->
-          <section id="viewExport" class="view-panel">
-            <div class="card">
-              <h3>Export Database SQL Dump</h3>
-              <p class="text-muted">Download a complete SQL dump of the current database with all tables and records.</p>
-              <div class="mt-3">
-                <button id="btnDownloadExport" class="btn btn-primary">📥 Download SQL File</button>
+          <!-- 8. Operations View (Database & Table) -->
+          <section id="viewOperations" class="view-panel">
+            <div class="dashboard-grid">
+              <!-- DB Operations (visible when in DB context) -->
+              <div class="card glass-card" id="cardDbOperations">
+                <h3>🗄️ Database Operations</h3>
+                
+                <div class="operation-block mt-3">
+                  <label><strong>Rename Database:</strong></label>
+                  <div class="input-action-row">
+                    <input type="text" id="opDbNewName" class="form-control" placeholder="New database name">
+                    <button class="btn btn-primary" id="btnOpRenameDb">Rename</button>
+                  </div>
+                </div>
+
+                <div class="operation-block mt-3">
+                  <label><strong>Copy Database:</strong></label>
+                  <div class="input-action-row">
+                    <input type="text" id="opDbCopyName" class="form-control" placeholder="Destination database name">
+                    <button class="btn btn-secondary" id="btnOpCopyDb">Copy</button>
+                  </div>
+                  <label class="checkbox-label mt-1">
+                    <input type="checkbox" id="opDbCopyData" checked> Copy structure and data
+                  </label>
+                </div>
+
+                <div class="operation-block mt-3">
+                  <label><strong>Change Collation:</strong></label>
+                  <div class="input-action-row">
+                    <select id="opDbCollation" class="form-control"></select>
+                    <button class="btn btn-secondary" id="btnOpDbCollation">Change</button>
+                  </div>
+                </div>
+
+                <div class="operation-danger-zone mt-4">
+                  <h4>⚠️ Danger Zone</h4>
+                  <div class="flex-gap mt-2">
+                    <button class="btn btn-warning btn-sm" id="btnOpTruncateDb">Empty Database (Truncate All Tables)</button>
+                    <button class="btn btn-danger btn-sm" id="btnOpDropDb">Drop Database (DROP)</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Table Operations (visible when in Table context) -->
+              <div class="card glass-card" id="cardTableOperations">
+                <h3>📐 Table Operations: <code id="opTableTarget"></code></h3>
+
+                <!-- Table Maintenance -->
+                <div class="operation-block mt-3">
+                  <label><strong>🛠️ Table Maintenance:</strong></label>
+                  <div class="flex-gap mt-1">
+                    <button class="btn btn-secondary btn-xs" id="btnMaintCheck">Check Table</button>
+                    <button class="btn btn-secondary btn-xs" id="btnMaintAnalyze">Analyze Table</button>
+                    <button class="btn btn-secondary btn-xs" id="btnMaintRepair">Repair Table</button>
+                    <button class="btn btn-secondary btn-xs" id="btnMaintOptimize">Optimize Table</button>
+                  </div>
+                  <div id="maintResultContainer" class="mt-2 text-xs" style="display: none;"></div>
+                </div>
+
+                <div class="operation-block mt-3">
+                  <label><strong>Rename Table:</strong></label>
+                  <div class="input-action-row">
+                    <input type="text" id="opTableNewName" class="form-control" placeholder="New table name">
+                    <button class="btn btn-primary" id="btnOpRenameTable">Rename</button>
+                  </div>
+                </div>
+
+                <div class="operation-block mt-3">
+                  <label><strong>Copy Table:</strong></label>
+                  <div class="input-action-row">
+                    <input type="text" id="opTableCopyName" class="form-control" placeholder="Destination table name">
+                    <button class="btn btn-secondary" id="btnOpCopyTable">Copy</button>
+                  </div>
+                  <label class="checkbox-label mt-1">
+                    <input type="checkbox" id="opTableCopyData" checked> Copy table data
+                  </label>
+                </div>
+
+                <div class="operation-block mt-3">
+                  <label><strong>Storage Engine:</strong></label>
+                  <div class="input-action-row">
+                    <select id="opTableEngine" class="form-control">
+                      <option value="InnoDB">InnoDB</option>
+                      <option value="MyISAM">MyISAM</option>
+                      <option value="MEMORY">MEMORY</option>
+                    </select>
+                    <button class="btn btn-secondary" id="btnOpChangeEngine">Change</button>
+                  </div>
+                </div>
+
+                <div class="operation-block mt-3">
+                  <label><strong>Table Collation:</strong></label>
+                  <div class="input-action-row">
+                    <select id="opTableCollation" class="form-control"></select>
+                    <button class="btn btn-secondary" id="btnOpTableCollation">Convert</button>
+                  </div>
+                </div>
+
+                <div class="operation-danger-zone mt-4">
+                  <h4>⚠️ Danger Zone</h4>
+                  <div class="flex-gap mt-2">
+                    <button class="btn btn-warning btn-sm" id="btnOpTruncateTable">Empty Table (TRUNCATE)</button>
+                    <button class="btn btn-danger btn-sm" id="btnOpDropTable">Delete Table (DROP)</button>
+                  </div>
+                </div>
               </div>
             </div>
           </section>
 
-          <!-- Import View -->
+          <!-- 9. Export View -->
+          <section id="viewExport" class="view-panel">
+            <div class="card glass-card">
+              <h3>Export Database / Table</h3>
+              <p class="text-muted">Dump database structure and data in standard portable formats.</p>
+
+              <div class="form-grid mt-3">
+                <div class="form-group">
+                  <label><strong>Export Target:</strong></label>
+                  <div id="exportTargetLabel" class="font-mono text-primary">Entire Database</div>
+                </div>
+
+                <div class="form-group">
+                  <label for="exportFormatSelect"><strong>Format:</strong></label>
+                  <select id="exportFormatSelect" class="form-control">
+                    <option value="sql" selected>SQL - Standard SQL Dump (*.sql)</option>
+                    <option value="csv">CSV - Comma Separated Values (*.csv)</option>
+                    <option value="json">JSON - JSON Data (*.json)</option>
+                  </select>
+                </div>
+
+                <div class="form-group" id="exportWhatGroup">
+                  <label><strong>Dump Content:</strong></label>
+                  <div class="radio-group">
+                    <label><input type="radio" name="exportWhat" value="both" checked> Structure &amp; Data</label>
+                    <label><input type="radio" name="exportWhat" value="structure"> Structure Only</label>
+                    <label><input type="radio" name="exportWhat" value="data"> Data Only</label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4">
+                <button id="btnDownloadExport" class="btn btn-primary">📥 Download Export File</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- 10. Import View -->
           <section id="viewImport" class="view-panel">
-            <div class="card">
+            <div class="card glass-card">
               <h3>Import SQL Script or Dump</h3>
               <p class="text-muted">Execute a SQL file or paste SQL commands directly into this database.</p>
               <div class="file-drop-area mt-3" id="fileDropArea">
-                <input type="file" id="importFileInput" accept=".sql,.txt">
-                <p>Drag and drop a <code>.sql</code> file here, or click to browse</p>
+                <input type="file" id="importFileInput" accept=".sql,.txt,.csv">
+                <p>Drag and drop a <code>.sql</code> or <code>.csv</code> file here, or click to browse</p>
+                <span id="importSelectedFile" class="text-muted text-xs"></span>
               </div>
               <div class="mt-3">
-                <label>Or paste SQL commands:</label>
+                <label><strong>Or paste SQL commands:</strong></label>
                 <textarea id="importSqlTextarea" class="sql-textarea" rows="6" placeholder="Paste SQL statements..."></textarea>
               </div>
               <div class="mt-3">
@@ -268,9 +577,73 @@
               </div>
             </div>
           </section>
+
+          <!-- 11. Server Processes View -->
+          <section id="viewProcesses" class="view-panel">
+            <div class="card glass-card">
+              <div class="card-header-flex">
+                <div>
+                  <h3>📊 MySQL Server Processes</h3>
+                  <p class="text-muted text-xs">Active connections, running queries, and background threads.</p>
+                </div>
+                <button class="btn btn-secondary btn-sm" id="btnRefreshProcesses">⟳ Refresh Processes</button>
+              </div>
+              <div class="table-responsive mt-3">
+                <table class="data-table" id="processesTable">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>User</th>
+                      <th>Host</th>
+                      <th>Database</th>
+                      <th>Command</th>
+                      <th>Time (s)</th>
+                      <th>State</th>
+                      <th>Query / Info</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="processesTbody">
+                    <tr><td colspan="9" class="text-center text-muted">Loading processlist...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- 12. User Management View -->
+          <section id="viewUsers" class="view-panel">
+            <div class="card glass-card">
+              <div class="card-header-flex">
+                <div>
+                  <h3>👥 MySQL User Accounts &amp; Privileges</h3>
+                  <p class="text-muted text-xs">Manage database users, hosts, and access privileges.</p>
+                </div>
+                <button class="btn btn-primary btn-sm" id="btnOpenAddUserModal">➕ Add User Account</button>
+              </div>
+              <div class="table-responsive mt-3">
+                <table class="data-table" id="usersTable">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Host</th>
+                      <th>Global Privileges</th>
+                      <th>Grant Option</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="usersTbody">
+                    <tr><td colspan="5" class="text-center text-muted">Loading MySQL users...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
         </div>
       </main>
     </div>
+
+    <!-- Modals -->
 
     <!-- Create Database Modal -->
     <div class="modal" id="modalNewDb">
@@ -284,11 +657,7 @@
             <label for="newDbName">Database Name:</label>
             <input type="text" id="newDbName" class="form-control" required placeholder="e.g. my_project_db" autofocus>
             <label for="newDbCollation" class="mt-2">Collation:</label>
-            <select id="newDbCollation" class="form-control">
-              <option value="utf8mb4_unicode_ci" selected>utf8mb4_unicode_ci (Recommended)</option>
-              <option value="utf8mb4_general_ci">utf8mb4_general_ci</option>
-              <option value="utf8_general_ci">utf8_general_ci</option>
-            </select>
+            <select id="newDbCollation" class="form-control"></select>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" id="btnCancelNewDb">Cancel</button>
@@ -335,6 +704,183 @@
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" id="btnCancelCreateTable">Cancel</button>
             <button type="submit" class="btn btn-primary">Save Table</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Add/Edit Column Modal -->
+    <div class="modal" id="modalColumn">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3 id="modalColumnTitle">Add Column</h3>
+          <button class="modal-close" id="btnCloseColumnModal">×</button>
+        </div>
+        <form id="formColumn">
+          <input type="hidden" id="colIsEdit" value="0">
+          <input type="hidden" id="colOriginalName" value="">
+          <div class="modal-body form-grid">
+            <div class="form-group">
+              <label>Column Name:</label>
+              <input type="text" id="colName" class="form-control" required placeholder="e.g. email">
+            </div>
+            <div class="form-group">
+              <label>Type:</label>
+              <select id="colType" class="form-control">
+                <option value="INT">INT</option>
+                <option value="VARCHAR" selected>VARCHAR</option>
+                <option value="TEXT">TEXT</option>
+                <option value="DATETIME">DATETIME</option>
+                <option value="TIMESTAMP">TIMESTAMP</option>
+                <option value="TINYINT">TINYINT</option>
+                <option value="BIGINT">BIGINT</option>
+                <option value="DECIMAL">DECIMAL</option>
+                <option value="FLOAT">FLOAT</option>
+                <option value="DOUBLE">DOUBLE</option>
+                <option value="JSON">JSON</option>
+                <option value="BLOB">BLOB</option>
+                <option value="DATE">DATE</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Length / Set:</label>
+              <input type="text" id="colLength" class="form-control" placeholder="e.g. 255">
+            </div>
+            <div class="form-group">
+              <label>Default Value:</label>
+              <input type="text" id="colDefault" class="form-control" placeholder="NULL, 0, or text">
+            </div>
+            <div class="form-group" id="colPositionGroup">
+              <label>Position:</label>
+              <select id="colPosition" class="form-control">
+                <option value="END">At end of table</option>
+                <option value="FIRST">At beginning of table</option>
+                <option value="AFTER">After column...</option>
+              </select>
+            </div>
+            <div class="form-group" id="colAfterColumnGroup" style="display: none;">
+              <label>After Column:</label>
+              <select id="colAfterSelect" class="form-control"></select>
+            </div>
+            <div class="form-group flex-gap">
+              <label class="checkbox-label"><input type="checkbox" id="colNullable" checked> Nullable</label>
+              <label class="checkbox-label"><input type="checkbox" id="colAutoIncrement"> Auto Increment</label>
+              <label class="checkbox-label" id="colPrimaryKeyGroup"><input type="checkbox" id="colPrimaryKey"> Primary Key</label>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="btnCancelColumnModal">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="btnSaveColumn">Save Column</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Add Index Modal -->
+    <div class="modal" id="modalIndex">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3>Add Index</h3>
+          <button class="modal-close" id="btnCloseIndexModal">×</button>
+        </div>
+        <form id="formIndex">
+          <div class="modal-body form-grid">
+            <div class="form-group">
+              <label>Index Name (optional):</label>
+              <input type="text" id="idxName" class="form-control" placeholder="e.g. idx_email">
+            </div>
+            <div class="form-group">
+              <label>Index Type:</label>
+              <select id="idxType" class="form-control">
+                <option value="INDEX" selected>INDEX</option>
+                <option value="UNIQUE">UNIQUE</option>
+                <option value="PRIMARY">PRIMARY KEY</option>
+                <option value="FULLTEXT">FULLTEXT</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Columns (select one or more):</label>
+              <div id="idxColumnsList" class="checkbox-list"></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="btnCancelIndexModal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Create Index</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Edit Row Modal -->
+    <div class="modal" id="modalEditRow">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-header">
+          <h3 id="modalEditRowTitle">Edit Row</h3>
+          <button class="modal-close" id="btnCloseEditRow">×</button>
+        </div>
+        <form id="formEditRow">
+          <input type="hidden" id="editRowPkCol" value="">
+          <input type="hidden" id="editRowPkVal" value="">
+          <div class="modal-body form-grid" id="editRowFields"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="btnCancelEditRow">Cancel</button>
+            <button type="submit" class="btn btn-primary">Update Row</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- View Cell Value / JSON Modal -->
+    <div class="modal" id="modalViewCell">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-header">
+          <h3 id="modalViewCellTitle">Cell Value Inspector</h3>
+          <button class="modal-close" id="btnCloseViewCell">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="flex-gap mb-2">
+            <span class="badge badge-subtle" id="viewCellTypeBadge">TEXT</span>
+            <button class="btn btn-xs btn-outline ml-auto" id="btnCopyCellValue">📋 Copy to Clipboard</button>
+          </div>
+          <pre id="viewCellContent" class="code-viewer-pre"></pre>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btnDismissViewCell">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add MySQL User Modal -->
+    <div class="modal" id="modalAddUser">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h3>Add MySQL User Account</h3>
+          <button class="modal-close" id="btnCloseAddUser">×</button>
+        </div>
+        <form id="formAddUser">
+          <div class="modal-body form-grid">
+            <div class="form-group">
+              <label>Username:</label>
+              <input type="text" id="newUserName" class="form-control" required placeholder="e.g. appuser">
+            </div>
+            <div class="form-group">
+              <label>Host:</label>
+              <input type="text" id="newUserHost" class="form-control" value="localhost" placeholder="localhost or %">
+            </div>
+            <div class="form-group">
+              <label>Password:</label>
+              <input type="password" id="newUserPassword" class="form-control" placeholder="Leave empty for none">
+            </div>
+            <div class="form-group">
+              <label>Database Privileges:</label>
+              <select id="newUserDbScope" class="form-control">
+                <option value="" selected>Grant all privileges on all databases (*.*)</option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="btnCancelAddUser">Cancel</button>
+            <button type="submit" class="btn btn-primary">Create User</button>
           </div>
         </form>
       </div>
