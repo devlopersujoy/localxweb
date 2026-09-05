@@ -19,6 +19,20 @@ function startDashboard(port) {
     res.status(404).json({ error: 'API route not found', path: req.path });
   });
 
+  // Serve root localxweb.png branding asset
+  app.get('/localxweb.png', (req, res) => {
+    const rootImg = path.join(__dirname, '../../localxweb.png');
+    const pubImg = path.join(__dirname, 'public', 'localxweb.png');
+    const fs = require('fs');
+    if (fs.existsSync(rootImg)) {
+      return res.sendFile(rootImg);
+    }
+    if (fs.existsSync(pubImg)) {
+      return res.sendFile(pubImg);
+    }
+    res.status(404).end();
+  });
+
   // Clean HTML5 URL routing: /Control-Center, /projects, /databases, /doctor, /logs, /docs, /settings, /404, or any route
   app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));

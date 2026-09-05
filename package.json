@@ -71,6 +71,7 @@
   "files": [
     "bin/",
     "src/",
+    "localxweb.png",
     "LICENSE",
     "README.md"
   ],

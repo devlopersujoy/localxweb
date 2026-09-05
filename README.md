@@ -1,7 +1,7 @@
 <div align="center">
 
 <a href="https://github.com/devlopersujoy/localxweb">
-  <img src="https://i.ibb.co.com/gZgyMxZ2/localxweb.png" alt="LocalXWeb Logo" width="560" style="max-width: 100%; height: auto; border-radius: 12px; margin-bottom: 12px;" />
+  <img src="./localxweb.png" alt="LocalXWeb Logo" width="560" style="max-width: 100%; height: auto; border-radius: 14px; margin-bottom: 14px;" />
 </a>
 
 # LocalXWeb ⚡
