@@ -144,7 +144,8 @@ html, body {
   width: 40px;
   height: 40px;
   border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 50%, #8b5cf6 100%);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
   color: #fff;
   display: flex;
   align-items: center;
@@ -152,6 +153,16 @@ html, body {
   box-shadow: 0 4px 16px var(--accent-glow);
   position: relative;
   overflow: hidden;
+  padding: 3px;
+  flex-shrink: 0;
+}
+
+.brand-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: calc(var(--radius-sm) - 3px);
+  display: block;
 }
 
 .brand-logo-wrap::after {
@@ -163,6 +174,7 @@ html, body {
   height: 100%;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
   animation: logoShimmer 4s infinite;
+  pointer-events: none;
 }
 
 .brand-title {
@@ -390,6 +402,13 @@ html, body {
   align-items: center;
   gap: 8px;
   font-size: 0.88rem;
+}
+
+.breadcrumb-logo {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  border-radius: 4px;
 }
 
 .breadcrumb-root {
@@ -1222,6 +1241,19 @@ html, body {
 .modal-header h4 {
   font-size: 1.15rem;
   font-weight: 700;
+}
+
+.modal-title-with-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-title-logo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  border-radius: 5px;
 }
 
 .modal-close {

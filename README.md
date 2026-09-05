@@ -1,8 +1,12 @@
-# LocalXWeb ⚡
-
 <div align="center">
 
-![LocalXWeb Logo](https://img.shields.io/badge/LocalXWeb-v1.2.0-0ea5e9?style=for-the-badge&logo=apache&logoColor=white)
+<a href="https://github.com/devlopersujoy/localxweb">
+  <img src="https://i.ibb.co.com/gZgyMxZ2/localxweb.png" alt="LocalXWeb Logo" width="560" style="max-width: 100%; height: auto; border-radius: 12px; margin-bottom: 12px;" />
+</a>
+
+# LocalXWeb ⚡
+
+[![Version](https://img.shields.io/badge/LocalXWeb-v1.2.0-0ea5e9?style=for-the-badge&logo=apache&logoColor=white)](https://github.com/devlopersujoy/localxweb)
 [![npm install](https://img.shields.io/badge/npm-npm%20install%20--g%20localxweb-cb3837?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/localxweb)
 [![Feedback](https://img.shields.io/badge/Feedback-DevCrush%20Studio-0284c7?style=for-the-badge&logo=discourse&logoColor=white)](https://feedback.devcrush.workers.dev/f/localxweb)
 [![License: Proprietary](https://img.shields.io/badge/License-Proprietary%20%2F%20EULA-crimson.svg?style=for-the-badge)](LICENSE)

@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LocalXWeb - Universal Local Server Stack</title>
+  <link rel="icon" type="image/png" href="https://i.ibb.co.com/gZgyMxZ2/localxweb.png">
+  <link rel="apple-touch-icon" href="https://i.ibb.co.com/gZgyMxZ2/localxweb.png">
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,7 +22,8 @@
       <!-- Sidebar Brand Header -->
       <div class="sidebar-brand-card">
         <div class="brand-logo-wrap">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+          <img src="https://i.ibb.co.com/gZgyMxZ2/localxweb.png" alt="LocalXWeb" class="brand-logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" style="display: none;">
             <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
             <polyline points="2 17 12 22 22 17"></polyline>
             <polyline points="2 12 12 17 22 12"></polyline>
@@ -120,6 +123,7 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
           </button>
           <div class="breadcrumb-trail">
+            <img src="https://i.ibb.co.com/gZgyMxZ2/localxweb.png" alt="LocalXWeb" class="breadcrumb-logo" onerror="this.style.display='none';">
             <span class="breadcrumb-root">LocalXWeb</span>
             <span class="breadcrumb-slash">/</span>
             <span id="topbar-view-title" class="breadcrumb-current">Control Center</span>
@@ -1117,7 +1121,10 @@ try {
   <div id="modal-shortcuts" class="modal-overlay hidden">
     <div class="modal-box">
       <div class="modal-header">
-        <h4>⌨️ Keyboard Shortcuts</h4>
+        <div class="modal-title-with-logo">
+          <img src="https://i.ibb.co.com/gZgyMxZ2/localxweb.png" alt="LocalXWeb" class="modal-title-logo" onerror="this.style.display='none';">
+          <h4>⌨️ Keyboard Shortcuts</h4>
+        </div>
         <button class="modal-close" onclick="closeModal('modal-shortcuts')">&times;</button>
       </div>
       <div class="modal-body">
