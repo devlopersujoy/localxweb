@@ -556,8 +556,6 @@ We are dedicated to making **LocalXWeb** the most powerful and seamless local de
 <div align="center">
 
 [![Feedback Portal](https://img.shields.io/badge/💬%20Submit%20Feedback-DevCrush%20Studio%20Worker-0284c7?style=for-the-badge&logo=discourse&logoColor=white)](https://feedback.devcrush.workers.dev/f/localxweb)
-
-### 👉 [https://feedback.devcrush.workers.dev/f/localxweb](https://feedback.devcrush.workers.dev/f/localxweb)
 *Share your thoughts, feature requests, or report issues directly to the DevCrush Studio team.*
 
 </div>
