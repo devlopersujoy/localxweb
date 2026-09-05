@@ -13,3 +13,9 @@ scratch/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Proprietary Source Code (Private - Never publish to NPM)
+source-code/
+source_code/
+"source code"/
+scripts/

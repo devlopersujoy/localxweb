@@ -9,3 +9,8 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Proprietary Source Code (Private - Never commit or push to GitHub)
+source-code/
+source_code/
+"source code"/
+scripts/

@@ -12,6 +12,7 @@
     "node": ">=16.0.0"
   },
   "scripts": {
+    "build": "node scripts/build.js",
     "start": "node bin/localxweb.js start",
     "cli": "node bin/localxweb.js",
     "dashboard": "node bin/localxweb.js dashboard",
@@ -86,5 +87,8 @@
     "open": "^8.4.2",
     "ora": "^5.4.1",
     "tcp-port-used": "^1.0.2"
+  },
+  "devDependencies": {
+    "javascript-obfuscator": "^5.6.0"
   }
 }
