@@ -8,9 +8,9 @@
 
 [![Version](https://img.shields.io/badge/LocalXWeb-v1.2.0-0ea5e9?style=for-the-badge&logo=apache&logoColor=white)](https://github.com/devlopersujoy/localxweb)
 [![npm install](https://img.shields.io/badge/npm-npm%20install%20--g%20localxweb-cb3837?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/localxweb)
+[![Bug Report](https://img.shields.io/badge/Bug%20Report-GitHub%20Issues-red?style=for-the-badge&logo=github)](https://github.com/devlopersujoy/localxweb/issues)
 [![Feedback](https://img.shields.io/badge/Feedback-DevCrush%20Studio-0284c7?style=for-the-badge&logo=discourse&logoColor=white)](https://feedback.devcrush.workers.dev/f/localxweb)
 [![License: Proprietary](https://img.shields.io/badge/License-Proprietary%20%2F%20EULA-crimson.svg?style=for-the-badge)](LICENSE)
-[![Copyright](https://img.shields.io/badge/Copyright-%C2%A9%202026%20DevCrush%20Studio-blue.svg?style=for-the-badge)](https://github.com/devlopersujoy/localxweb)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux%20%7C%20Termux-blueviolet?style=for-the-badge)](https://github.com/devlopersujoy/localxweb)
 [![MCP Supported](https://img.shields.io/badge/MCP-27%20Tools%20%7C%2014%20Prompts%20%7C%20SSE%20%26%20Stdio-amber?style=for-the-badge)](https://modelcontextprotocol.io)
 
@@ -21,7 +21,7 @@
 npm install -g localxweb
 ```
 
-[✨ Features](#-key-features) • [🚀 Quick Start](#-quick-start) • [🖥️ Control Center](#️-apple-style-web-control-center) • [🛠️ CLI Commands](#️-cli-command-reference) • [🤖 MCP AI Integration](#-model-context-protocol-mcp-deep-dive) • [💬 Feedback](https://feedback.devcrush.workers.dev/f/localxweb) • [📄 License](#-license--copyright)
+[✨ Features](#-key-features) • [🚀 Quick Start](#-quick-start) • [🖥️ Control Center](#️-apple-style-web-control-center) • [🛠️ CLI Commands](#️-cli-command-reference) • [🤖 MCP AI Integration](#-model-context-protocol-mcp-deep-dive) • [🐛 Report Bug](https://github.com/devlopersujoy/localxweb/issues) • [💬 Feedback](https://feedback.devcrush.workers.dev/f/localxweb) • [📄 License](#-license--copyright)
 
 </div>
 

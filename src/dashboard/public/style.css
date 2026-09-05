@@ -325,7 +325,11 @@ html, body {
 }
 .dock-app-icon.pma { background-color: rgba(245, 158, 11, 0.18); color: #f59e0b; }
 .dock-app-icon.apache { background-color: rgba(239, 68, 68, 0.18); color: #ef4444; }
+.dock-app-icon.bug { background-color: rgba(239, 68, 68, 0.18); color: #f87171; }
 .dock-app-icon.feedback { background-color: rgba(14, 165, 233, 0.18); color: #38bdf8; }
+
+.dock-bug-btn:hover { border-color: rgba(239, 68, 68, 0.5); }
+.dock-bug-btn:hover .dock-app-arrow { color: #f87171; }
 
 .dock-feedback-btn:hover { border-color: rgba(56, 189, 248, 0.5); }
 .dock-feedback-btn:hover .dock-app-arrow { color: #38bdf8; }
@@ -519,6 +523,31 @@ html, body {
   color: var(--text-primary);
   border-color: var(--border-strong);
   transform: scale(1.05);
+}
+
+.header-bug-btn {
+  height: 36px;
+  padding: 0 13px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(245, 158, 11, 0.12));
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.header-bug-btn:hover {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(245, 158, 11, 0.25));
+  border-color: #f87171;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.25);
 }
 
 .header-feedback-btn {
