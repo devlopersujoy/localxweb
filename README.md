@@ -519,13 +519,25 @@ You can edit `~/.localxweb/config.json` directly or use `localxweb config`:
 | Platform | Architecture | Installation Method |
 | :--- | :--- | :--- |
 | **Windows 10 / 11** | x64 | Portable zip auto-installer, native Windows paths |
-| **macOS (Sonoma, Ventura, etc.)** | Apple Silicon (M1/M2/M3) & Intel | Homebrew automated detection & service wrapper |
-| **Linux (Ubuntu, Debian, Fedora, Arch)** | x64, ARM64 | System package manager integration (`apt`, `dnf`, `pacman`) |
-| **Android (Termux)** | ARM64, ARM | Termux package integration (`pkg install php mariadb apache2`) |
+| **macOS (Sonoma, Ventura, etc.)** | Apple Silicon (M1/M2/M3/M4) & Intel | Homebrew automated detection & service wrapper |
+| **Linux (Ubuntu, Debian, Fedora, Arch, Alpine)** | x64, ARM64 | Package manager integration (`apt`, `dnf`, `pacman`, `apk`, `zypper`) |
+| **GitHub Codespaces & Gitpod** | x64, ARM64 | Headless auto-setup (`apt` non-interactive), auto port forward, non-root safe ports |
+| **Docker & Dev Containers** | x64, ARM64 | Container-aware auto-configuration, headless daemon management |
+| **Android (Termux)** | ARM64, ARM | Non-root port 8080 auto-switch, Termux `pkg` integration |
 
 ---
 
 ## ❓ Frequently Asked Questions (FAQ)
+
+<details>
+<summary><b>Q: Does LocalXWeb work inside GitHub Codespaces and Docker containers?</b></summary>
+<b>Yes! 100% plug-and-play.</b> LocalXWeb automatically detects GitHub Codespaces (<code>$CODESPACES</code>) and container environments. It switches to non-interactive package installation (<code>DEBIAN_FRONTEND=noninteractive</code>), auto-assigns non-privileged ports (<code>8080</code> for Web Server, <code>9898</code> for Dashboard, <code>9999</code> for phpMyAdmin), binds to <code>0.0.0.0</code> for instant VS Code port forwarding, and starts all background daemons without hanging.
+</details>
+
+<details>
+<summary><b>Q: How does automatic PHP Extension setup work?</b></summary>
+When you run <code>localxweb install extensions</code>, LocalXWeb checks for missing extensions (<code>mysqli</code>, <code>pdo_mysql</code>, <code>mbstring</code>, <code>curl</code>, <code>xml</code>, <code>zip</code>, <code>gd</code>, <code>intl</code>, <code>fileinfo</code>) and auto-installs them using your system's package manager (<code>apt</code> + <code>phpenmod</code> on Ubuntu/Debian/Codespaces, <code>apk</code> on Alpine, <code>pkg</code> on Termux, <code>brew</code> on macOS, or uncomments them in <code>php.ini</code> on Windows and Arch Linux).
+</details>
 
 <details>
 <summary><b>Q: How is LocalXWeb different from XAMPP?</b></summary>
