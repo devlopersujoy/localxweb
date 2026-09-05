@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>LocalXWeb Database Studio</title>
   <link rel="icon" type="image/png" href="/localxweb.png">
   <link rel="stylesheet" href="/studio.css">
@@ -12,7 +12,13 @@
     <!-- Top Bar -->
     <header class="studio-header">
       <div class="header-left">
-        <button id="sidebarToggle" class="btn-icon" title="Toggle Navigation">☰</button>
+        <button id="sidebarToggle" class="btn-icon" title="Toggle Navigation" aria-label="Toggle Sidebar">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
         <div class="brand">
           <img src="/localxweb.png" alt="Logo" class="brand-logo" onerror="this.style.display='none'">
           <span class="brand-title">LocalXWeb <strong>Database Studio</strong></span>
@@ -26,9 +32,27 @@
         </div>
       </div>
       <div class="header-right">
-        <button id="btnQuickSql" class="btn btn-primary btn-sm">⚡ SQL Console</button>
-        <button id="btnRefresh" class="btn btn-secondary btn-sm" title="Reload data">⟳ Refresh</button>
-        <a href="http://localhost:9898" id="linkDashboard" class="btn btn-outline btn-sm" target="_blank">Dashboard ↗</a>
+        <button id="btnQuickSql" class="btn btn-primary btn-sm">
+          <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+          <span>SQL Console</span>
+        </button>
+        <button id="btnRefresh" class="btn btn-secondary btn-sm" title="Reload data">
+          <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+          <span>Refresh</span>
+        </button>
+        <a href="http://localhost:9898" id="linkDashboard" class="btn btn-outline btn-sm" target="_blank" rel="noopener">
+          <span>Dashboard</span>
+          <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+          </svg>
+        </a>
       </div>
     </header>
 
@@ -38,15 +62,46 @@
       <aside class="studio-sidebar" id="sidebar">
         <div class="sidebar-header">
           <div class="search-box">
+            <svg class="icon icon-sm text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
             <input type="text" id="dbSearchInput" placeholder="Filter databases..." autocomplete="off">
           </div>
-          <button id="btnNewDb" class="btn btn-primary btn-xs" title="Create new database">+ New DB</button>
+          <button id="btnNewDb" class="btn btn-primary btn-xs" title="Create new database">
+            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>New DB</span>
+          </button>
         </div>
         <div class="sidebar-server-links">
-          <button class="server-link-btn" id="sidebarServerHome">🏠 Server: 127.0.0.1</button>
+          <button class="server-link-btn" id="sidebarServerHome">
+            <svg class="icon icon-sm text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+              <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+              <line x1="6" y1="6" x2="6.01" y2="6"></line>
+              <line x1="6" y1="18" x2="6.01" y2="18"></line>
+            </svg>
+            <span>Server: 127.0.0.1</span>
+          </button>
           <div class="server-quick-links">
-            <button class="quick-link-btn" id="sidebarLinkProcesses" title="Active Queries">📊 Processes</button>
-            <button class="quick-link-btn" id="sidebarLinkUsers" title="MySQL Privileges">👥 Users</button>
+            <button class="quick-link-btn" id="sidebarLinkProcesses" title="Active Queries">
+              <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+              </svg>
+              <span>Processes</span>
+            </button>
+            <button class="quick-link-btn" id="sidebarLinkUsers" title="MySQL Privileges">
+              <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              <span>Users</span>
+            </button>
           </div>
         </div>
         <div class="db-tree-container" id="dbTree">
@@ -59,25 +114,69 @@
         <!-- Breadcrumb & Active Context -->
         <div class="context-bar" id="contextBar">
           <div class="breadcrumbs" id="breadcrumbs">
-            <span class="crumb crumb-root" id="crumbServer">🏠 Server: 127.0.0.1</span>
+            <span class="crumb crumb-root" id="crumbServer">
+              <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                <line x1="6" y1="18" x2="6.01" y2="18"></line>
+              </svg>
+              <span>Server: 127.0.0.1</span>
+            </span>
           </div>
           <div class="context-actions" id="contextActions"></div>
         </div>
 
         <!-- Navigation Tabs -->
         <div class="tab-nav" id="tabNav" style="display: none;">
-          <button class="tab-btn" data-tab="server" id="tabBtnServer">🏠 Overview</button>
-          <button class="tab-btn" data-tab="database" id="tabBtnDatabase">🗄️ Tables</button>
-          <button class="tab-btn active" data-tab="browse" id="tabBtnBrowse">📄 Browse</button>
-          <button class="tab-btn" data-tab="structure" id="tabBtnStructure">📐 Structure</button>
-          <button class="tab-btn" data-tab="sql" id="tabBtnSql">⚡ SQL</button>
-          <button class="tab-btn" data-tab="search" id="tabBtnSearch">🔍 Search</button>
-          <button class="tab-btn" data-tab="insert" id="tabBtnInsert">➕ Insert</button>
-          <button class="tab-btn" data-tab="operations" id="tabBtnOperations">⚙️ Operations</button>
-          <button class="tab-btn" data-tab="export" id="tabBtnExport">📤 Export</button>
-          <button class="tab-btn" data-tab="import" id="tabBtnImport">📥 Import</button>
-          <button class="tab-btn" data-tab="processes" id="tabBtnProcesses">📊 Processes</button>
-          <button class="tab-btn" data-tab="users" id="tabBtnUsers">👥 Users</button>
+          <button class="tab-btn" data-tab="server" id="tabBtnServer">
+            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>
+            <span>Overview</span>
+          </button>
+          <button class="tab-btn" data-tab="database" id="tabBtnDatabase">
+            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            <span>Tables</span>
+          </button>
+          <button class="tab-btn active" data-tab="browse" id="tabBtnBrowse">
+            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+            <span>Browse</span>
+          </button>
+          <button class="tab-btn" data-tab="structure" id="tabBtnStructure">
+            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            <span>Structure</span>
+          </button>
+          <button class="tab-btn" data-tab="sql" id="tabBtnSql">
+            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>SQL</span>
+          </button>
+          <button class="tab-btn" data-tab="search" id="tabBtnSearch">
+            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <span>Search</span>
+          </button>
+          <button class="tab-btn" data-tab="insert" id="tabBtnInsert">
+            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>Insert</span>
+          </button>
+          <button class="tab-btn" data-tab="operations" id="tabBtnOperations">
+            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <span>Operations</span>
+          </button>
+          <button class="tab-btn" data-tab="export" id="tabBtnExport">
+            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Export</span>
+          </button>
+          <button class="tab-btn" data-tab="import" id="tabBtnImport">
+            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>Import</span>
+          </button>
+          <button class="tab-btn" data-tab="processes" id="tabBtnProcesses">
+            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            <span>Processes</span>
+          </button>
+          <button class="tab-btn" data-tab="users" id="tabBtnUsers">
+            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span>Users</span>
+          </button>
         </div>
 
         <!-- Tab Views -->
@@ -86,45 +185,81 @@
           <section id="viewServer" class="view-panel active">
             <div class="dashboard-grid">
               <div class="card glass-card">
-                <h3>🚀 MySQL / MariaDB Server</h3>
+                <h3>
+                  <svg class="icon text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                  <span>MySQL / MariaDB Server</span>
+                </h3>
                 <table class="info-table">
-                  <tr><td>Server:</td><td id="srvHost">127.0.0.1:3306</td></tr>
-                  <tr><td>Server Version:</td><td id="srvVer">-</td></tr>
-                  <tr><td>User:</td><td>root@127.0.0.1</td></tr>
+                  <tr><td>Server:</td><td id="srvHost" class="font-mono">127.0.0.1:3306</td></tr>
+                  <tr><td>Server Version:</td><td id="srvVer" class="font-mono">-</td></tr>
+                  <tr><td>User:</td><td class="font-mono">root@127.0.0.1</td></tr>
                   <tr><td>Uptime:</td><td id="srvUptime">-</td></tr>
                   <tr><td>Active Threads:</td><td id="srvThreads">-</td></tr>
                   <tr><td>Total Queries:</td><td id="srvQueries">-</td></tr>
-                  <tr><td>Web Studio Port:</td><td id="srvPort">9999</td></tr>
+                  <tr><td>Web Studio Port:</td><td id="srvPort" class="font-mono">9999</td></tr>
                   <tr><td>Status:</td><td><span class="badge badge-success">Online &amp; Responsive</span></td></tr>
                 </table>
               </div>
 
               <div class="card glass-card">
-                <h3>⚡ Quick Actions</h3>
+                <h3>
+                  <svg class="icon text-warning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  <span>Quick Actions</span>
+                </h3>
                 <div class="quick-actions-grid">
-                  <button class="btn btn-secondary" id="qaNewDb">➕ Create New Database</button>
-                  <button class="btn btn-secondary" id="qaRunSql">📝 Run Arbitrary SQL Query</button>
-                  <button class="btn btn-secondary" id="qaProcesses">📊 Show Server Processes (Kill Queries)</button>
-                  <button class="btn btn-secondary" id="qaUsers">👥 Manage MySQL Users &amp; Privileges</button>
-                  <button class="btn btn-secondary" id="qaExportAll">📦 Export All Databases</button>
+                  <button class="btn btn-secondary" id="qaNewDb">
+                    <svg class="icon icon-sm text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <span>Create New Database</span>
+                  </button>
+                  <button class="btn btn-secondary" id="qaRunSql">
+                    <svg class="icon icon-sm text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                    <span>Run Arbitrary SQL Query</span>
+                  </button>
+                  <button class="btn btn-secondary" id="qaProcesses">
+                    <svg class="icon icon-sm text-warning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    <span>Server Processes (Kill Queries)</span>
+                  </button>
+                  <button class="btn btn-secondary" id="qaUsers">
+                    <svg class="icon icon-sm text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                    <span>Manage MySQL Users</span>
+                  </button>
+                  <button class="btn btn-secondary" id="qaExportAll">
+                    <svg class="icon icon-sm text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span>Export All Databases</span>
+                  </button>
                 </div>
               </div>
             </div>
 
             <div class="card glass-card mt-4">
               <div class="card-header-flex">
-                <h3>🗄️ Databases (<span id="serverDbCount">0</span>)</h3>
+                <h3>
+                  <svg class="icon text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                  <span>Databases (<span id="serverDbCount">0</span>)</span>
+                </h3>
                 <div class="flex-gap">
-                  <button class="btn btn-danger btn-xs" id="btnDeleteAllDbs" title="Drop all user databases">🗑️ Delete All Databases</button>
-                  <button class="btn btn-primary btn-xs" id="btnServerNewDb">+ New Database</button>
+                  <button class="btn btn-danger btn-xs" id="btnDeleteAllDbs" title="Drop all user databases">
+                    <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    <span>Delete All Databases</span>
+                  </button>
+                  <button class="btn btn-primary btn-xs" id="btnServerNewDb">
+                    <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <span>New Database</span>
+                  </button>
                 </div>
               </div>
 
               <!-- Floating Multi-DB Bulk Actions Bar -->
               <div class="bulk-actions-bar" id="bulkDbActionsBar" style="display: none;">
                 <span id="bulkSelectedDbCount" class="font-bold">0 databases selected</span>
-                <button class="btn btn-danger btn-xs" id="btnBulkDropDbs">🗑️ Drop Selected</button>
-                <button class="btn btn-warning btn-xs" id="btnBulkEmptyDbs">⚠️ Empty (Truncate)</button>
+                <button class="btn btn-danger btn-xs" id="btnBulkDropDbs">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                  <span>Drop Selected</span>
+                </button>
+                <button class="btn btn-warning btn-xs" id="btnBulkEmptyDbs">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  <span>Empty (Truncate)</span>
+                </button>
                 <button class="btn btn-secondary btn-xs" id="btnBulkDeselectDbs">Clear Selection</button>
               </div>
 
@@ -152,21 +287,48 @@
             <div class="view-header">
               <h2 id="dbViewTitle">Database: <em>none</em></h2>
               <div class="view-actions">
-                <button class="btn btn-primary btn-sm" id="btnCreateTableModal">+ Create Table</button>
-                <button class="btn btn-warning btn-sm" id="btnTruncateAllTables" title="Truncate all tables in database">⚠️ Empty All Tables</button>
-                <button class="btn btn-danger btn-sm" id="btnDropAllTablesInDb" title="Drop all tables in database">🗑️ Drop All Tables</button>
-                <button class="btn btn-secondary btn-sm" id="btnDbOpsShortcut">⚙️ Operations</button>
-                <button class="btn btn-danger btn-sm" id="btnDropDb">Drop Database</button>
+                <button class="btn btn-primary btn-sm" id="btnCreateTableModal">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  <span>Create Table</span>
+                </button>
+                <button class="btn btn-warning btn-sm" id="btnTruncateAllTables" title="Truncate all tables in database">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+                  <span>Empty All Tables</span>
+                </button>
+                <button class="btn btn-danger btn-sm" id="btnDropAllTablesInDb" title="Drop all tables in database">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                  <span>Drop All Tables</span>
+                </button>
+                <button class="btn btn-secondary btn-sm" id="btnDbOpsShortcut">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                  <span>Operations</span>
+                </button>
+                <button class="btn btn-danger btn-sm" id="btnDropDb">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                  <span>Drop DB</span>
+                </button>
               </div>
             </div>
 
             <!-- Floating Multi-Table Bulk Actions Bar -->
             <div class="bulk-actions-bar" id="bulkTableActionsBar" style="display: none;">
               <span id="bulkSelectedTableCount" class="font-bold">0 tables selected</span>
-              <button class="btn btn-danger btn-xs" id="btnBulkDropTables">🗑️ Drop Selected</button>
-              <button class="btn btn-warning btn-xs" id="btnBulkTruncateTables">⚠️ Empty (Truncate)</button>
-              <button class="btn btn-secondary btn-xs" id="btnBulkOptimizeTables">⚡ Optimize</button>
-              <button class="btn btn-secondary btn-xs" id="btnBulkCheckTables">🔍 Check</button>
+              <button class="btn btn-danger btn-xs" id="btnBulkDropTables">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                <span>Drop Selected</span>
+              </button>
+              <button class="btn btn-warning btn-xs" id="btnBulkTruncateTables">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+                <span>Empty (Truncate)</span>
+              </button>
+              <button class="btn btn-secondary btn-xs" id="btnBulkOptimizeTables">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <span>Optimize</span>
+              </button>
+              <button class="btn btn-secondary btn-xs" id="btnBulkCheckTables">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <span>Check</span>
+              </button>
               <button class="btn btn-secondary btn-xs" id="btnBulkDeselectTables">Clear Selection</button>
             </div>
 
@@ -192,10 +354,12 @@
               </div>
             </div>
 
-
             <!-- Storage Visual Breakdown Card -->
             <div class="card glass-card mt-4" id="cardDbStorageStats">
-              <h4>📊 Storage Distribution &amp; Statistics</h4>
+              <h4>
+                <svg class="icon text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                <span>Storage Distribution &amp; Statistics</span>
+              </h4>
               <div class="stats-summary-row mt-2" id="statsSummaryRow"></div>
               <div class="storage-bars-container mt-3" id="storageBarsContainer"></div>
             </div>
@@ -218,19 +382,29 @@
                 </div>
               </div>
               <div class="search-box sm">
+                <svg class="icon icon-sm text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                 <input type="text" id="browseSearchInput" placeholder="Instant filter across rows...">
               </div>
               <div class="pagination-controls" id="paginationControls">
-                <button class="btn btn-xs btn-outline" id="btnPrevPage">◀ Prev</button>
+                <button class="btn btn-xs btn-outline" id="btnPrevPage">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                  <span>Prev</span>
+                </button>
                 <span id="currentPageBadge" class="badge">1 / 1</span>
-                <button class="btn btn-xs btn-outline" id="btnNextPage">Next ▶</button>
+                <button class="btn btn-xs btn-outline" id="btnNextPage">
+                  <span>Next</span>
+                  <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
               </div>
             </div>
 
             <!-- Floating Multi-Row Bulk Actions Bar -->
             <div class="bulk-actions-bar" id="bulkActionsBar" style="display: none;">
               <span id="bulkSelectedCount" class="font-bold">0 rows selected</span>
-              <button class="btn btn-danger btn-xs" id="btnBulkDelete">🗑️ Delete Selected</button>
+              <button class="btn btn-danger btn-xs" id="btnBulkDelete">
+                <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                <span>Delete Selected</span>
+              </button>
               <button class="btn btn-secondary btn-xs" id="btnBulkDeselect">Clear Selection</button>
             </div>
 
@@ -249,10 +423,19 @@
           <!-- 4. Table Structure View -->
           <section id="viewStructure" class="view-panel">
             <div class="view-header">
-              <h3>📐 Schema &amp; Columns</h3>
+              <h3>
+                <svg class="icon text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                <span>Schema &amp; Columns</span>
+              </h3>
               <div class="view-actions">
-                <button class="btn btn-primary btn-sm" id="btnOpenAddColumnModal">➕ Add Column</button>
-                <button class="btn btn-secondary btn-sm" id="btnOpenAddIndexModal">🔑 Add Index</button>
+                <button class="btn btn-primary btn-sm" id="btnOpenAddColumnModal">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  <span>Add Column</span>
+                </button>
+                <button class="btn btn-secondary btn-sm" id="btnOpenAddIndexModal">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="15" r="2"/><path d="M21 2l-2 2m-1.5 1.5L14 9l-1.5-1.5L11 9l-1.5-1.5L8 9c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6l3-3 1.5 1.5L19 11l1.5-1.5L22 8l-1-6z"/></svg>
+                  <span>Add Index</span>
+                </button>
               </div>
             </div>
 
@@ -309,7 +492,10 @@
           <section id="viewSql" class="view-panel">
             <div class="card glass-card">
               <div class="sql-editor-header">
-                <h3>Run SQL Query on: <code id="sqlTargetDb">server</code></h3>
+                <h3>
+                  <svg class="icon text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                  <span>Run SQL Query on: <code id="sqlTargetDb">server</code></span>
+                </h3>
                 <div class="sql-snippets">
                   <button class="btn-snippet" data-sql="SELECT * FROM `TABLE` LIMIT 25;">SELECT</button>
                   <button class="btn-snippet" data-sql="INSERT INTO `TABLE` () VALUES ();">INSERT</button>
@@ -321,11 +507,20 @@
               </div>
               <textarea id="sqlQueryInput" class="sql-textarea" rows="7" spellcheck="false" placeholder="Enter SQL query here..."></textarea>
               <div class="sql-actions">
-                <button id="btnExecuteSql" class="btn btn-primary">▶ Execute Query (Ctrl+Enter)</button>
-                <button id="btnExplainSql" class="btn btn-secondary">🔍 Explain Query</button>
-                <button id="btnFormatSql" class="btn btn-secondary">✨ Format SQL</button>
+                <button id="btnExecuteSql" class="btn btn-primary">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  <span>Execute Query (Ctrl+Enter)</span>
+                </button>
+                <button id="btnExplainSql" class="btn btn-secondary">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <span>Explain Query</span>
+                </button>
+                <button id="btnFormatSql" class="btn btn-secondary">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  <span>Format SQL</span>
+                </button>
                 <button id="btnClearSql" class="btn btn-outline btn-sm">Clear</button>
-                <span id="queryTimer" class="text-muted ml-auto"></span>
+                <span id="queryTimer" class="text-muted ml-auto font-mono text-xs"></span>
               </div>
             </div>
 
@@ -334,8 +529,14 @@
               <div class="card-header-flex">
                 <h3 id="sqlResultsTitle">Query Results</h3>
                 <div class="flex-gap" id="sqlExportGroup" style="display: none;">
-                  <button class="btn btn-xs btn-outline" id="btnExportSqlCsv">📥 Export CSV</button>
-                  <button class="btn btn-xs btn-outline" id="btnExportSqlJson">📥 Export JSON</button>
+                  <button class="btn btn-xs btn-outline" id="btnExportSqlCsv">
+                    <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span>Export CSV</span>
+                  </button>
+                  <button class="btn btn-xs btn-outline" id="btnExportSqlJson">
+                    <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <span>Export JSON</span>
+                  </button>
                 </div>
               </div>
               <div class="table-responsive mt-2">
@@ -358,7 +559,10 @@
           <!-- 6. Search in Database View (phpMyAdmin Search) -->
           <section id="viewSearch" class="view-panel">
             <div class="card glass-card">
-              <h3>🔍 Search in Database: <code id="searchDbTarget"></code></h3>
+              <h3>
+                <svg class="icon text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <span>Search in Database: <code id="searchDbTarget"></code></span>
+              </h3>
               <p class="text-muted text-xs">Search for words, numbers or values across text/char columns in all or selected tables.</p>
 
               <div class="form-grid mt-3">
@@ -377,7 +581,10 @@
               </div>
 
               <div class="mt-3">
-                <button id="btnRunDbSearch" class="btn btn-primary">🔍 Find in Database</button>
+                <button id="btnRunDbSearch" class="btn btn-primary">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <span>Find in Database</span>
+                </button>
               </div>
             </div>
 
@@ -401,11 +608,17 @@
           <!-- 7. Insert Row View -->
           <section id="viewInsert" class="view-panel">
             <div class="card glass-card">
-              <h3>Insert New Row into: <code id="insertTableTitle"></code></h3>
+              <h3>
+                <svg class="icon text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>Insert New Row into: <code id="insertTableTitle"></code></span>
+              </h3>
               <form id="insertRowForm" class="mt-3">
                 <div id="insertFormFields" class="form-grid"></div>
                 <div class="mt-4 flex-gap">
-                  <button type="submit" class="btn btn-primary">Save Row</button>
+                  <button type="submit" class="btn btn-primary">
+                    <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    <span>Save Row</span>
+                  </button>
                   <button type="button" class="btn btn-secondary" id="btnCancelInsert">Cancel</button>
                 </div>
               </form>
@@ -417,7 +630,10 @@
             <div class="dashboard-grid">
               <!-- DB Operations (visible when in DB context) -->
               <div class="card glass-card" id="cardDbOperations">
-                <h3>🗄️ Database Operations</h3>
+                <h3>
+                  <svg class="icon text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                  <span>Database Operations</span>
+                </h3>
                 
                 <div class="operation-block mt-3">
                   <label><strong>Rename Database:</strong></label>
@@ -447,7 +663,10 @@
                 </div>
 
                 <div class="operation-danger-zone mt-4">
-                  <h4>⚠️ Danger Zone</h4>
+                  <h4>
+                    <svg class="icon text-danger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <span>Danger Zone</span>
+                  </h4>
                   <div class="flex-gap mt-2">
                     <button class="btn btn-warning btn-sm" id="btnOpTruncateDb">Empty Database (Truncate All Tables)</button>
                     <button class="btn btn-danger btn-sm" id="btnOpDropDb">Drop Database (DROP)</button>
@@ -457,11 +676,14 @@
 
               <!-- Table Operations (visible when in Table context) -->
               <div class="card glass-card" id="cardTableOperations">
-                <h3>📐 Table Operations: <code id="opTableTarget"></code></h3>
+                <h3>
+                  <svg class="icon text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                  <span>Table Operations: <code id="opTableTarget"></code></span>
+                </h3>
 
                 <!-- Table Maintenance -->
                 <div class="operation-block mt-3">
-                  <label><strong>🛠️ Table Maintenance:</strong></label>
+                  <label><strong>Table Maintenance:</strong></label>
                   <div class="flex-gap mt-1">
                     <button class="btn btn-secondary btn-xs" id="btnMaintCheck">Check Table</button>
                     <button class="btn btn-secondary btn-xs" id="btnMaintAnalyze">Analyze Table</button>
@@ -511,7 +733,10 @@
                 </div>
 
                 <div class="operation-danger-zone mt-4">
-                  <h4>⚠️ Danger Zone</h4>
+                  <h4>
+                    <svg class="icon text-danger" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+                    <span>Danger Zone</span>
+                  </h4>
                   <div class="flex-gap mt-2">
                     <button class="btn btn-warning btn-sm" id="btnOpTruncateTable">Empty Table (TRUNCATE)</button>
                     <button class="btn btn-danger btn-sm" id="btnOpDropTable">Delete Table (DROP)</button>
@@ -524,7 +749,10 @@
           <!-- 9. Export View -->
           <section id="viewExport" class="view-panel">
             <div class="card glass-card">
-              <h3>Export Database / Table</h3>
+              <h3>
+                <svg class="icon text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span>Export Database / Table</span>
+              </h3>
               <p class="text-muted">Dump database structure and data in standard portable formats.</p>
 
               <div class="form-grid mt-3">
@@ -553,7 +781,10 @@
               </div>
 
               <div class="mt-4">
-                <button id="btnDownloadExport" class="btn btn-primary">📥 Download Export File</button>
+                <button id="btnDownloadExport" class="btn btn-primary">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <span>Download Export File</span>
+                </button>
               </div>
             </div>
           </section>
@@ -561,19 +792,25 @@
           <!-- 10. Import View -->
           <section id="viewImport" class="view-panel">
             <div class="card glass-card">
-              <h3>Import SQL Script or Dump</h3>
+              <h3>
+                <svg class="icon text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                <span>Import SQL Script or Dump</span>
+              </h3>
               <p class="text-muted">Execute a SQL file or paste SQL commands directly into this database.</p>
               <div class="file-drop-area mt-3" id="fileDropArea">
                 <input type="file" id="importFileInput" accept=".sql,.txt,.csv">
                 <p>Drag and drop a <code>.sql</code> or <code>.csv</code> file here, or click to browse</p>
-                <span id="importSelectedFile" class="text-muted text-xs"></span>
+                <span id="importSelectedFile" class="text-muted text-xs font-mono"></span>
               </div>
               <div class="mt-3">
                 <label><strong>Or paste SQL commands:</strong></label>
                 <textarea id="importSqlTextarea" class="sql-textarea" rows="6" placeholder="Paste SQL statements..."></textarea>
               </div>
               <div class="mt-3">
-                <button id="btnRunImport" class="btn btn-primary">⚡ Execute Import</button>
+                <button id="btnRunImport" class="btn btn-primary">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  <span>Execute Import</span>
+                </button>
               </div>
             </div>
           </section>
@@ -583,10 +820,16 @@
             <div class="card glass-card">
               <div class="card-header-flex">
                 <div>
-                  <h3>📊 MySQL Server Processes</h3>
+                  <h3>
+                    <svg class="icon text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    <span>MySQL Server Processes</span>
+                  </h3>
                   <p class="text-muted text-xs">Active connections, running queries, and background threads.</p>
                 </div>
-                <button class="btn btn-secondary btn-sm" id="btnRefreshProcesses">⟳ Refresh Processes</button>
+                <button class="btn btn-secondary btn-sm" id="btnRefreshProcesses">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                  <span>Refresh Processes</span>
+                </button>
               </div>
               <div class="table-responsive mt-3">
                 <table class="data-table" id="processesTable">
@@ -616,10 +859,16 @@
             <div class="card glass-card">
               <div class="card-header-flex">
                 <div>
-                  <h3>👥 MySQL User Accounts &amp; Privileges</h3>
+                  <h3>
+                    <svg class="icon text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <span>MySQL User Accounts &amp; Privileges</span>
+                  </h3>
                   <p class="text-muted text-xs">Manage database users, hosts, and access privileges.</p>
                 </div>
-                <button class="btn btn-primary btn-sm" id="btnOpenAddUserModal">➕ Add User Account</button>
+                <button class="btn btn-primary btn-sm" id="btnOpenAddUserModal">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  <span>Add User Account</span>
+                </button>
               </div>
               <div class="table-responsive mt-3">
                 <table class="data-table" id="usersTable">
@@ -649,7 +898,10 @@
     <div class="modal" id="modalNewDb">
       <div class="modal-dialog">
         <div class="modal-header">
-          <h3>Create New Database</h3>
+          <h3>
+            <svg class="icon text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>Create New Database</span>
+          </h3>
           <button class="modal-close" id="btnCloseNewDb">×</button>
         </div>
         <form id="formNewDb">
@@ -671,7 +923,10 @@
     <div class="modal" id="modalCreateTable">
       <div class="modal-dialog modal-lg">
         <div class="modal-header">
-          <h3>Create New Table in <code id="createTableDbName"></code></h3>
+          <h3>
+            <svg class="icon text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>Create New Table in <code id="createTableDbName"></code></span>
+          </h3>
           <button class="modal-close" id="btnCloseCreateTable">×</button>
         </div>
         <form id="formCreateTable">
@@ -699,7 +954,10 @@
                 <tbody id="colDefTbody"></tbody>
               </table>
             </div>
-            <button type="button" class="btn btn-secondary btn-xs mt-2" id="btnAddColumnRow">+ Add Column</button>
+            <button type="button" class="btn btn-secondary btn-xs mt-2" id="btnAddColumnRow">
+              <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>Add Column</span>
+            </button>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" id="btnCancelCreateTable">Cancel</button>
@@ -780,7 +1038,10 @@
     <div class="modal" id="modalIndex">
       <div class="modal-dialog">
         <div class="modal-header">
-          <h3>Add Index</h3>
+          <h3>
+            <svg class="icon text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="15" r="2"/><path d="M21 2l-2 2m-1.5 1.5L14 9l-1.5-1.5L11 9l-1.5-1.5L8 9c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6l3-3 1.5 1.5L19 11l1.5-1.5L22 8l-1-6z"/></svg>
+            <span>Add Index</span>
+          </h3>
           <button class="modal-close" id="btnCloseIndexModal">×</button>
         </div>
         <form id="formIndex">
@@ -815,7 +1076,10 @@
     <div class="modal" id="modalEditRow">
       <div class="modal-dialog modal-lg">
         <div class="modal-header">
-          <h3 id="modalEditRowTitle">Edit Row</h3>
+          <h3 id="modalEditRowTitle">
+            <svg class="icon text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            <span>Edit Row</span>
+          </h3>
           <button class="modal-close" id="btnCloseEditRow">×</button>
         </div>
         <form id="formEditRow">
@@ -840,7 +1104,10 @@
         <div class="modal-body">
           <div class="flex-gap mb-2">
             <span class="badge badge-subtle" id="viewCellTypeBadge">TEXT</span>
-            <button class="btn btn-xs btn-outline ml-auto" id="btnCopyCellValue">📋 Copy to Clipboard</button>
+            <button class="btn btn-xs btn-outline ml-auto" id="btnCopyCellValue">
+              <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Copy to Clipboard</span>
+            </button>
           </div>
           <pre id="viewCellContent" class="code-viewer-pre"></pre>
         </div>
@@ -854,7 +1121,10 @@
     <div class="modal" id="modalAddUser">
       <div class="modal-dialog">
         <div class="modal-header">
-          <h3>Add MySQL User Account</h3>
+          <h3>
+            <svg class="icon text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span>Add MySQL User Account</span>
+          </h3>
           <button class="modal-close" id="btnCloseAddUser">×</button>
         </div>
         <form id="formAddUser">
